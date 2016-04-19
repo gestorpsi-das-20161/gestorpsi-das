@@ -19,7 +19,7 @@ django-reversion==1.7
 django-rosetta==0.7.1
 django-sentry==1.13.5
 django-smart-selects==1.0.6
-django-swingtime==0.2.2
+django-swingtime==0.4
 django-templatetag-sugar==0.1
 eventlet==0.12.1
 greenlet==0.4.0
@@ -29,7 +29,7 @@ lockfile==0.9.1
 pisa==3.0.33
 pyasn1==0.1.6
 pycrypto==2.6
-pygooglechart==0.3.0
+pygooglechart==0.4.0
 python-daemon==1.6
 python-dateutil==1.5
 pytz==2013b
