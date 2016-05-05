@@ -17,6 +17,7 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
+
 """
 
 from datetime import datetime, date, time, timedelta
@@ -41,6 +42,7 @@ def timeslot_offset_options(
 ):
 
     '''
+
     Create a list of time slot options for use in swingtime forms.
     
     The list is comprised of 2-tuples containing the number of seconds since the
@@ -94,41 +96,87 @@ default_timeslot_offset_options_start = timeslot_offset_options(type='start')
 default_timeslot_offset_options_end = timeslot_offset_options(type='end')
 
 class SplitDateTimeWidget(forms.MultiWidget):
+
     '''
+
     A Widget that splits datetime input into a SelectDateWidget for dates and
     Select widget for times.
     
     '''
-    def __init__(self, attrs=None):
+
+    def __init__(self, attrs = None):
+
         widgets = (
-            SelectDateWidget(attrs=attrs), 
-            forms.Select(choices=default_timeslot_options, attrs=attrs)
+            SelectDateWidget(attrs = attrs), 
+            forms.Select(choices = default_timeslot_options, attrs = attrs)
         )
         super(SplitDateTimeWidget, self).__init__(widgets, attrs)
 
 
     def decompress(self, value):
+
+        '''
+
+        Decompress date and time value.
+
+        @params value receives date and time value.
+        @type value microsecond.
+        @return new values.
+
+        '''
+
         if value:
-            return [value.date(), value.time().replace(microsecond=0)]
+            return [value.date(), value.time().replace(microsecond = 0)]
         
         return [None, None]
 
 
 class ScheduleSingleOccurrenceForm(SingleOccurrenceForm):
-    room = forms.ModelChoiceField(queryset=Room.objects.all(), widget=forms.Select(attrs={'class':'extramedium asm', }))
-    device = forms.ModelMultipleChoiceField(required = False, queryset=DeviceDetails.objects.all(), widget=forms.SelectMultiple(attrs={'class':'multiselectable', }))
-    annotation = forms.CharField(required = False, widget=forms.Textarea(attrs={'class':'giant'}))
+
+    '''
+
+    Creates single ocurrence form.
+    Contains room, device and annotation fields
+
+    '''
+
+    # keeps room field.
+    room = forms.ModelChoiceField(queryset = Room.objects.all(), widget = forms.Select(
+           attrs = {'class':'extramedium asm', }))
+    
+    # keeps device field, that its multiple choice.
+    device = forms.ModelMultipleChoiceField(required = False, queryset = DeviceDetails.objects.all(), 
+             widget = forms.SelectMultiple(attrs={'class':'multiselectable', }))
+    
+    # annotation field, receives characters.
+    annotation = forms.CharField(required = False, widget = forms.Textarea(attrs = {'class':'giant'}))
     
     class Meta:
         model = ScheduleOccurrence
 
 
 class ScheduleOccurrenceForm(MultipleOccurrenceForm):
-    room = forms.ModelChoiceField(queryset=Room.objects.all(), widget=forms.Select(attrs={'class':'extramedium asm', }))
-    device = forms.MultipleChoiceField(required=False, widget=forms.CheckboxSelectMultiple, choices = (
+
+    '''
+
+    Creates ocurrence form.
+    Contains room, device, annotation and is_online field.
+
+    '''
+
+    # keeps room field.
+    room = forms.ModelChoiceField(queryset = Room.objects.all(), 
+        widget = forms.Select(attrs = {'class':'extramedium asm', }))
+
+    # keeps device field, that its multiple choice and create choices.
+    device = forms.MultipleChoiceField(required = False, widget = forms.CheckboxSelectMultiple, choices = (
         [(i.id, i) for i in DeviceDetails.objects.all()]
-        ))    
-    annotation = forms.CharField(required = False, widget=forms.Textarea())
+        )) 
+
+    # keeps annotation field, receives characters.
+    annotation = forms.CharField(required = False, widget = forms.Textarea())
+
+    # keeps is_online field is type boolean.
     is_online = forms.BooleanField(required = False)
 
     class Meta:
