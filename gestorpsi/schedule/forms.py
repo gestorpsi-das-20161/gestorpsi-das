@@ -1,6 +1,11 @@
 # -*- coding: utf-8 -*-
 
 """
+
+File name: forms.py
+Purpose: Contain methods and classes to define schedule app forms and its validations.
+
+
 Copyright (C) 2008 GestorPsi
 
 This program is free software; you can redistribute it and/or
@@ -28,35 +33,58 @@ from gestorpsi.util.widgets import SplitSelectDateTimeWidget
 from gestorpsi.schedule.models import OCCURRENCE_CONFIRMATION_PRESENCE 
 
 def timeslot_offset_options(
-    interval=swingtime_settings.TIMESLOT_INTERVAL,
-    start_time=swingtime_settings.TIMESLOT_START_TIME,
-    end_delta=swingtime_settings.TIMESLOT_END_TIME_DURATION,
-    fmt=swingtime_settings.TIMESLOT_TIME_FORMAT,
-    type='start',
+    interval = swingtime_settings.TIMESLOT_INTERVAL,
+    start_time = swingtime_settings.TIMESLOT_START_TIME,
+    end_delta = swingtime_settings.TIMESLOT_END_TIME_DURATION,
+    fmt = swingtime_settings.TIMESLOT_TIME_FORMAT,
+    type = 'start',
 ):
+
     '''
     Create a list of time slot options for use in swingtime forms.
     
     The list is comprised of 2-tuples containing the number of seconds since the
     start of the day and a 12-hour temporal representation of that offset.
+
+    @params interval: receives interval of time.
+    @type interval: seconds.
+    @params start_time: receives start date.
+    @type start_time : seconds.
+    @params end_delta: recives end time duration.
+    @type end_delta: seconds. 
+    @params fmt: return in time formats the seconds of interval duration H:M.
+    @type fmt: time.
+    @params type: receives the command to star counting.
+    @type type: String.
+    @return list of interval in time format H:M.
     
     '''
+
+    # receives the current date.
     dt = datetime.combine(date.today(), time(0))
+
+    # start time counting.
     dtstart = datetime.combine(dt.date(), start_time)
 
     if type == 'end':
         dtstart = dtstart + interval
 
+    # time duration.
     dtend = dtstart + end_delta
+
+    # list of timeslot offset options.
     options = []
 
+    # difference between datetime start and current date.
     delta = utils.time_delta_total_seconds(dtstart - dt)
+
+    # interval in seconds.
     seconds = utils.time_delta_total_seconds(interval)
 
     while dtstart <= dtend:
         options.append((delta, dtstart.strftime('%H:%M')))
-        dtstart += interval
-        delta += seconds
+        dtstart = dtstart + interval
+        delta = delta + seconds
 
     return options
 
