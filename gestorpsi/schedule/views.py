@@ -105,7 +105,8 @@ def add_event(
         redirect_to = None
     ):
 
-    # have to contains dtstart variable in URL. URL from schedule have to contains date and time data.
+    # have to contains dtstart variable in URL. URL from schedule have to
+    # contains date and time data.
     if not 'dtstart' in request.GET:
         return http.HttpResponseRedirect('/schedule/')
 
@@ -239,7 +240,9 @@ def event_view(
     recurrence_form_class=ScheduleOccurrenceForm
 ):
 
-    event = get_object_or_404(Referral, pk=pk, service__organization=request.user.get_profile().org_active)
+    event = get_object_or_404(
+        Referral, pk=pk,
+        service__organization=request.user.get_profile().org_active)
     event_form = recurrence_form = None
     if request.method == 'POST':
         if '_update' in request.POST:
@@ -264,7 +267,9 @@ def event_view(
 
     return render_to_response(
         template,
-        dict(event=event, event_form=event_form, recurrence_form=recurrence_form),
+        dict(
+            event=event,
+            event_form=event_form, recurrence_form=recurrence_form),
         context_instance=RequestContext(request)
     )
 
