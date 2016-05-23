@@ -34,35 +34,41 @@ OCCURRENCE_CONFIRMATION_PRESENCE = (
     (6, _('Professional not arrived')),
 )
 
+
 class ScheduleOccurrenceManager(models.Manager):
+
     def confirmed(self):
-        return super(ScheduleOccurrenceManager, self).get_query_set().filter(start_time__lt = datetime.now(), occurrenceconfirmation__isnull = False)
-    
+        return super(ScheduleOccurrenceManager, self).get_query_set().filter(start_time__lt=datetime.now(), occurrenceconfirmation__isnull=False)
+
     def not_confirmed(self):
-        return super(ScheduleOccurrenceManager, self).get_query_set().filter(start_time__lt = datetime.now(), occurrenceconfirmation__isnull = True)
-    
+        return super(ScheduleOccurrenceManager, self).get_query_set().filter(start_time__lt=datetime.now(), occurrenceconfirmation__isnull=True)
+
     def unmarked(self):
         return super(ScheduleOccurrenceManager, self).get_query_set().filter(Q(occurrenceconfirmation__presence=4) | Q(occurrenceconfirmation__presence=5))
-    
+
     def not_unmarked(self):
         return super(ScheduleOccurrenceManager, self).get_query_set().exclude(occurrenceconfirmation__presence=4).exclude(occurrenceconfirmation__presence=5)
 
+
 class ScheduleOccurrenceRangeManager(models.Manager):
+
     """
     this manager has been created as a help
     to provide data to use in 'report' app
     """
-    
+
     def all(self, organization, datetime_start=None, datetime_end=None):
         return ScheduleOccurrence.objects.filter(room__place__organization=organization, date__gte=datetime_start, date__lt=datetime_end)
-    
+
     def in_place(self, place, datetime_start=None, datetime_end=None):
         return ScheduleOccurrence.objects.filter(room__place=place, date__gte=datetime_start, date__lt=datetime_end)
-    
+
     def in_room(self, room, datetime_start=None, datetime_end=None):
         return ScheduleOccurrence.objects.filter(room=room, date__gte=datetime_start, date__lt=datetime_end)
 
+
 class ScheduleOccurrence(Occurrence):
+
     """
     This class represents a "Scheduled Event". It can optionally relate a room,
     devices (none, one or many), it can has an annotation, and it has information
@@ -81,7 +87,7 @@ class ScheduleOccurrence(Occurrence):
 
     def is_past(self):
         return True if self.start_time < datetime.now() else False
-    
+
     def was_confirmed(self):
         return True if len(OccurrenceConfirmation.objects.filter(occurrence=self)) else False
 
@@ -113,58 +119,63 @@ class ScheduleOccurrence(Occurrence):
             ("schedule_list", "Can list occurrence confirmation"),
         )
 
-    
     def employees_active(self):
         return self.occurrenceemployees.client.filter(active=True)
-    
+
     def have_session(self):
         if hasattr(self, 'session'):
             return True
         return False
-    
+
     def have_demand(self):
         if hasattr(self, 'demand'):
             return True
         return False
-    
+
     def have_diagnosis(self):
         if hasattr(self, 'diagnosis'):
             return True
         return False
-    
+
     def is_group(self):
         if self.event.referral.group:
             return True
         return False
 
+
 class OccurrenceConfirmation(models.Model):
     occurrence = models.OneToOneField(ScheduleOccurrence)
-    date_started = models.DateTimeField(_('Occurrence Date Started'), blank=True, null=True)
-    date_finished = models.DateTimeField(_('Occurrence Date Finished'), blank=True, null=True)
-    presence = models.IntegerField(_('Presence Confirmation'), max_length=2, blank=True, null=True, choices=OCCURRENCE_CONFIRMATION_PRESENCE)
-    reason = models.TextField(_('Unmark or Reschedule Reason (if exists)'), blank = True)
+    date_started = models.DateTimeField(
+        _('Occurrence Date Started'), blank=True, null=True)
+    date_finished = models.DateTimeField(
+        _('Occurrence Date Finished'), blank=True, null=True)
+    presence = models.IntegerField(
+        _('Presence Confirmation'), max_length=2, blank=True, null=True, choices=OCCURRENCE_CONFIRMATION_PRESENCE)
+    reason = models.TextField(
+        _('Unmark or Reschedule Reason (if exists)'), blank=True)
     device = models.ManyToManyField(DeviceDetails, null=True, blank=True)
 
     def __unicode__(self):
         return u'%s' % self.get_presence_display()
+
 
 class OccurrenceFamily(models.Model):
     occurrence = models.OneToOneField(ScheduleOccurrence)
     client = models.ManyToManyField(Client, null=False, blank=False)
 
     def __unicode__(self):
-        return u'%s: %s' % (self.occurrence, ", ".join([ c.person.name for c in self.client.all()]))
+        return u'%s: %s' % (self.occurrence, ", ".join([c.person.name for c in self.client.all()]))
+
 
 class OccurrenceEmployees(models.Model):
     occurrence = models.OneToOneField(ScheduleOccurrence)
     client = models.ManyToManyField(Client, null=False, blank=False)
 
     def __unicode__(self):
-        return u'%s: %s' % (self.occurrence, ", ".join([ c.person.name for c in self.client.all()]))
+        return u'%s: %s' % (self.occurrence, ", ".join([c.person.name for c in self.client.all()]))
 
 reversion.register(Occurrence)
 reversion.register(ScheduleOccurrence, follow=['occurrence_ptr'])
 reversion.register(OccurrenceConfirmation, follow=['occurrence'])
 reversion.register(OccurrenceFamily)
 reversion.register(OccurrenceEmployees)
-
