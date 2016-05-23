@@ -89,6 +89,7 @@ class ScheduleOccurrence(Occurrence):
     """
     room = models.ForeignKey(Room, null=True, blank=True)
     device = models.ManyToManyField(DeviceDetails, null=True, blank=True)
+    reserve = models.BooleanField(default=False)
     annotation = models.CharField(max_length=765, null=True, blank=True)
     is_online = models.BooleanField(default=False)
 
@@ -99,7 +100,8 @@ class ScheduleOccurrence(Occurrence):
         return True if self.start_time < datetime.now() else False
 
     def was_confirmed(self):
-        return True if len(OccurrenceConfirmation.objects.filter(occurrence=self)) else False
+        return True if len(OccurrenceConfirmation.objects.filter(
+            occurrence=self)) else False
 
     def online_users(self):
 
@@ -111,10 +113,13 @@ class ScheduleOccurrence(Occurrence):
         return messagetopic.online_users.count()
 
     def revision(self):
-        return reversion.get_for_object(self).order_by('-revision__date_created').latest('revision__date_created').revision
+        return reversion.get_for_object(self).order_by(
+            '-revision__date_created').latest(
+                'revision__date_created').revision
 
     def __unicode__(self):
-        return u"%s" % (datetime.strftime(self.start_time, '%d/%m/%Y %H:%M'))
+        return u"%s" % (datetime.strftime(
+            self.start_time, '%d/%m/%Y %H:%M'))
 
     def have_company(self):
         have_company = False
@@ -155,12 +160,13 @@ class ScheduleOccurrence(Occurrence):
 
 class OccurrenceConfirmation(models.Model):
     occurrence = models.OneToOneField(ScheduleOccurrence)
-    date_started = models.DateTimeField(
-        _('Occurrence Date Started'), blank=True, null=True)
+    date_started = models.DateTimeField(_(
+        'Occurrence Date Started'), blank=True, null=True)
     date_finished = models.DateTimeField(
         _('Occurrence Date Finished'), blank=True, null=True)
     presence = models.IntegerField(
-        _('Presence Confirmation'), max_length=2, blank=True, null=True, choices=OCCURRENCE_CONFIRMATION_PRESENCE)
+        _('Presence Confirmation'), max_length=2, blank=True, null=True,
+        choices=OCCURRENCE_CONFIRMATION_PRESENCE)
     reason = models.TextField(
         _('Unmark or Reschedule Reason (if exists)'), blank=True)
     device = models.ManyToManyField(DeviceDetails, null=True, blank=True)
@@ -174,7 +180,8 @@ class OccurrenceFamily(models.Model):
     client = models.ManyToManyField(Client, null=False, blank=False)
 
     def __unicode__(self):
-        return u'%s: %s' % (self.occurrence, ", ".join([c.person.name for c in self.client.all()]))
+        return u'%s: %s' % (self.occurrence, ", ".join(
+            [c.person.name for c in self.client.all()]))
 
 
 class OccurrenceEmployees(models.Model):
@@ -182,7 +189,8 @@ class OccurrenceEmployees(models.Model):
     client = models.ManyToManyField(Client, null=False, blank=False)
 
     def __unicode__(self):
-        return u'%s: %s' % (self.occurrence, ", ".join([c.person.name for c in self.client.all()]))
+        return u'%s: %s' % (self.occurrence, ", ".join(
+            [c.person.name for c in self.client.all()]))
 
 reversion.register(Occurrence)
 reversion.register(ScheduleOccurrence, follow=['occurrence_ptr'])
