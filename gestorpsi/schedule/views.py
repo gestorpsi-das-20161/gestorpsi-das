@@ -302,7 +302,7 @@ def occurrence_confirmation_form_group(
         choose a covenant of service and create a payment based in covenant
     '''
 
-    occurrence = get_object_or_404(ScheduleOccurrence, pk=pk, event__referral__service__organization=request.user.get_profile().org_active)
+    occurrence = get_object_or_404(ScheduleOccurrence, pk = pk, event__referral__service__organization = request.user.get_profile().org_active)
     covenant_list = occurrence.event.referral.service.covenant.all().order_by('name')
     receive_list = []
 
@@ -362,7 +362,7 @@ def occurrence_confirmation_form_group(
             occurrence_confirmation.date_started = occurrence.start_time
             occurrence_confirmation.date_finished = occurrence.end_time
 
-        form = form_class(instance=occurrence_confirmation, initial={
+        form = form_class(instance=occurrence_confirmation, initial = {
             'occurrence':occurrence,
             'start_time':occurrence.start_time,
             'end_time':occurrence.end_time,
@@ -372,9 +372,9 @@ def occurrence_confirmation_form_group(
         form.fields['device'].widget.choices = [(i.id, i) for i in DeviceDetails.objects.active(request.user.get_profile().org_active).filter(Q(room=occurrence.room) | Q(mobility="2", lendable=True) | Q(place=occurrence.room.place, mobility="2", lendable=False))]
 
         # payments of occurrence, update form.
-        for x in Receive.objects.filter(occurrence=occurrence):
+        for x in Receive.objects.filter(occurrence = occurrence):
             prefix = 'receive_form---%s' % x.id # for many forms and one submit.
-            receive_list.append( ReceiveFormUpdate(instance=x, prefix=prefix) )
+            receive_list.append( ReceiveFormUpdate(instance = x, prefix = prefix) )
 
 
     # just one out if errors
@@ -400,7 +400,7 @@ def create_new_payment_form():
     # new payment form, not required.
     if not request.POST.get('select_covenant_receive') == '000' :
 
-        covenant = Covenant.objects.get( pk=request.POST.get('select_covenant_receive'), organization=request.user.get_profile().org_active )
+        covenant = Covenant.objects.get( pk = request.POST.get('select_covenant_receive'), organization = request.user.get_profile().org_active )
 
         prefix = 'receive_form---TEMPID999FORM' # hardcore Jquery
         form_receive_new = ReceiveFormNew(request.POST, prefix=prefix)
@@ -509,31 +509,9 @@ def occurrence_confirmation_form(
             else:
                 payment_valid = False
 
-        # occurrence
-        if form.is_valid() and payment_valid :
-
-            data = form.save(commit=False)
-            data.occurrence = occurrence
-
-            if int(data.presence) not in (1,2): # client not arrive, dont save datetime field
-                data.date_started = None
-                data.date_finished = None
-
-            data.save()
-            form.save_m2m()
-
-            # save occurrence comment
-            occurrence.annotation = request.POST['occurrence_annotation']
-            occurrence.save()
-
-            messages.success(request, _('Occurrence confirmation updated successfully'))
-            return http.HttpResponseRedirect(redirect_to or request.path)
-
-        else:
-
-            form.fields['device'].widget.choices = [(i.id, i) for i in DeviceDetails.objects.active(request.user.get_profile().org_active).filter(Q(room=occurrence.room) | Q(mobility=2, lendable=True) | Q(place =  occurrence.room.place, mobility=2, lendable=False))]
-
-            messages.error(request, _(u'Campo inválido ou obrigatório'))
+        # Calls method that validates payment form if payment is valid.
+        ocurrence_payment()
+       
 
     # not request.POST
     else:
@@ -541,7 +519,7 @@ def occurrence_confirmation_form(
             occurrence_confirmation.date_started = occurrence.start_time
             occurrence_confirmation.date_finished = occurrence.end_time
 
-        form = form_class(instance=occurrence_confirmation, initial={
+        form = form_class(instance=occurrence_confirmation, initial = {
             'occurrence':occurrence,
             'start_time':occurrence.start_time,
             'end_time':occurrence.end_time,
@@ -555,20 +533,55 @@ def occurrence_confirmation_form(
             prefix = 'receive_form---%s' % x.id
             receive_list.append( ReceiveFormUpdate(instance=x, prefix=prefix) )
 
-    return render_to_response(
-        template,
+    if occurrence_confirmation and int(occurrence_confirmation.presence) > 2:
+        hide_date_field = True
+    else:
+        hide_date_field = None
+
+    render_to_response = render_to_response(template,
         dict(
-                occurrence=occurrence,
-                form=form,
-                object=object,
-                referral=occurrence.event.referral,
-                occurrence_confirmation=occurrence_confirmation,
-                hide_date_field=True if occurrence_confirmation and int(occurrence_confirmation.presence) > 2 else None,
+                occurrence = occurrence,
+                form = form,
+                object = object,
+                referral = occurrence.event.referral,
+                occurrence_confirmation = occurrence_confirmation,
+                hide_date_field = hide_date_field,
                 denied_to_write = denied_to_write,
                 receive_list = receive_list,
             ),
-        context_instance=RequestContext(request)
+        context_instance = RequestContext(request)
     )
+
+    return render_to_response 
+
+def ocurrence_payment():
+
+    # occurrence
+    if form.is_valid() and payment_valid :
+
+        data = form.save(commit=False)
+        data.occurrence = occurrence
+
+        # client not arrive, dont save datetime field.
+        if int(data.presence) not in (1,2): 
+            data.date_started = None
+            data.date_finished = None
+
+        data.save()
+        form.save_m2m()
+
+        # save occurrence comment
+        occurrence.annotation = request.POST['occurrence_annotation']
+        occurrence.save()
+
+        messages.success(request, _('Occurrence confirmation updated successfully'))
+        return http.HttpResponseRedirect(redirect_to or request.path)
+
+    else:
+
+        form.fields['device'].widget.choices = [(i.id, i) for i in DeviceDetails.objects.active(request.user.get_profile().org_active).filter(Q(room=occurrence.room) | Q(mobility=2, lendable=True) | Q(place =  occurrence.room.place, mobility=2, lendable=False))]
+
+        messages.error(request, _(u'Campo inválido ou obrigatório'))
 
 
 @permission_required_with_403('schedule.schedule_read')
