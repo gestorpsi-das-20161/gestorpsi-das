@@ -36,35 +36,45 @@ OCCURRENCE_CONFIRMATION_PRESENCE = (
 
 
 class ScheduleOccurrenceManager(models.Manager):
-
     def confirmed(self):
-        return super(ScheduleOccurrenceManager, self).get_query_set().filter(start_time__lt=datetime.now(), occurrenceconfirmation__isnull=False)
+        return super(ScheduleOccurrenceManager, self).get_query_set().filter(
+            start_time__lt=datetime.now(),
+            occurrenceconfirmation__isnull=False)
 
     def not_confirmed(self):
-        return super(ScheduleOccurrenceManager, self).get_query_set().filter(start_time__lt=datetime.now(), occurrenceconfirmation__isnull=True)
+        return super(ScheduleOccurrenceManager, self).get_query_set().filter(
+            start_time__lt=datetime.now(),
+            occurrenceconfirmation__isnull=True)
 
     def unmarked(self):
-        return super(ScheduleOccurrenceManager, self).get_query_set().filter(Q(occurrenceconfirmation__presence=4) | Q(occurrenceconfirmation__presence=5))
+        return super(ScheduleOccurrenceManager, self).get_query_set().filter(
+            Q(occurrenceconfirmation__presence=4) |
+            Q(occurrenceconfirmation__presence=5))
 
     def not_unmarked(self):
-        return super(ScheduleOccurrenceManager, self).get_query_set().exclude(occurrenceconfirmation__presence=4).exclude(occurrenceconfirmation__presence=5)
+        return super(ScheduleOccurrenceManager, self).get_query_set().exclude(
+            occurrenceconfirmation__presence=4).exclude(
+            occurrenceconfirmation__presence=5)
 
 
 class ScheduleOccurrenceRangeManager(models.Manager):
-
     """
     this manager has been created as a help
     to provide data to use in 'report' app
     """
 
     def all(self, organization, datetime_start=None, datetime_end=None):
-        return ScheduleOccurrence.objects.filter(room__place__organization=organization, date__gte=datetime_start, date__lt=datetime_end)
+        return ScheduleOccurrence.objects.filter(
+            room__place__organization=organization,
+            date__gte=datetime_start, date__lt=datetime_end)
 
     def in_place(self, place, datetime_start=None, datetime_end=None):
-        return ScheduleOccurrence.objects.filter(room__place=place, date__gte=datetime_start, date__lt=datetime_end)
+        return ScheduleOccurrence.objects.filter(
+            room__place=place, date__gte=datetime_start, date__lt=datetime_end)
 
     def in_room(self, room, datetime_start=None, datetime_end=None):
-        return ScheduleOccurrence.objects.filter(room=room, date__gte=datetime_start, date__lt=datetime_end)
+        return ScheduleOccurrence.objects.filter(
+            room=room, date__gte=datetime_start, date__lt=datetime_end)
 
 
 class ScheduleOccurrence(Occurrence):
