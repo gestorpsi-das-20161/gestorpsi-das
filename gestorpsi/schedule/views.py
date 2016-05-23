@@ -206,9 +206,15 @@ def add_event(
 
     # get from url
     dtstart = parser.parse( request.GET['dtstart'] )
-    room = get_object_or_None(Room, pk=request.GET.get('room'), place__organization=request.user.get_profile().org_active)
-    client = get_object_or_None(Client, pk=request.GET.get('client'), person__organization=request.user.get_profile().org_active)
-    referral = get_object_or_None(Referral, pk=request.GET.get('referral'), service__organization=request.user.get_profile().org_active)
+    room = get_object_or_None(
+        Room, pk=request.GET.get('room'),
+        place__organization=request.user.get_profile().org_active)
+    client = get_object_or_None(
+        Client, pk=request.GET.get('client'),
+        person__organization=request.user.get_profile().org_active)
+    referral = get_object_or_None(
+        Referral, pk=request.GET.get('referral'),
+        service__organization=request.user.get_profile().org_active)
     event_form = event_form_class
 
     recurrence_form = recurrence_form_class( request,
