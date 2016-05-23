@@ -25,7 +25,8 @@ from gestorpsi.place.models import Room
 from gestorpsi.device.models import DeviceDetails
 from gestorpsi.schedule import settings as swingtime_settings
 from gestorpsi.util.widgets import SplitSelectDateTimeWidget
-from gestorpsi.schedule.models import OCCURRENCE_CONFIRMATION_PRESENCE 
+from gestorpsi.schedule.models import OCCURRENCE_CONFIRMATION_PRESENCE
+
 
 def timeslot_offset_options(
     interval=swingtime_settings.TIMESLOT_INTERVAL,
@@ -36,23 +37,20 @@ def timeslot_offset_options(
 ):
     '''
     Create a list of time slot options for use in swingtime forms.
-    
+
     The list is comprised of 2-tuples containing the number of seconds since the
     start of the day and a 12-hour temporal representation of that offset.
-    
+
     '''
     dt = datetime.combine(date.today(), time(0))
     dtstart = datetime.combine(dt.date(), start_time)
-
     if type == 'end':
-        dtstart = dtstart + interval
-
+        dtstart = dtstart + timedelta(hours=+0.5)
     dtend = dtstart + end_delta
     options = []
 
     delta = utils.time_delta_total_seconds(dtstart - dt)
     seconds = utils.time_delta_total_seconds(interval)
-
     while dtstart <= dtend:
         options.append((delta, dtstart.strftime('%H:%M')))
         dtstart += interval
@@ -65,65 +63,71 @@ default_timeslot_offset_options = timeslot_offset_options()
 default_timeslot_offset_options_start = timeslot_offset_options(type='start')
 default_timeslot_offset_options_end = timeslot_offset_options(type='end')
 
+
 class SplitDateTimeWidget(forms.MultiWidget):
+
     '''
     A Widget that splits datetime input into a SelectDateWidget for dates and
     Select widget for times.
-    
+
     '''
+
     def __init__(self, attrs=None):
         widgets = (
-            SelectDateWidget(attrs=attrs), 
+            SelectDateWidget(attrs=attrs),
             forms.Select(choices=default_timeslot_options, attrs=attrs)
         )
         super(SplitDateTimeWidget, self).__init__(widgets, attrs)
 
-
+    # -------------------------------------------------------------------------
     def decompress(self, value):
         if value:
             return [value.date(), value.time().replace(microsecond=0)]
-        
+
         return [None, None]
 
 
 class ScheduleSingleOccurrenceForm(SingleOccurrenceForm):
-    room = forms.ModelChoiceField(queryset=Room.objects.all(), widget=forms.Select(attrs={'class':'extramedium asm', }))
-    device = forms.ModelMultipleChoiceField(required = False, queryset=DeviceDetails.objects.all(), widget=forms.SelectMultiple(attrs={'class':'multiselectable', }))
-    annotation = forms.CharField(required = False, widget=forms.Textarea(attrs={'class':'giant'}))
-    
+    room = forms.ModelChoiceField(
+        queryset=Room.objects.all(), widget=forms.Select(
+            attrs={'class': 'extramedium asm'}))
+    device = forms.ModelMultipleChoiceField(
+        required=False, queryset=DeviceDetails.objects.all(),
+        widget=forms.SelectMultiple(attrs={'class': 'multiselectable'}))
+
+    annotation = forms.CharField(
+        required=False, widget=forms.Textarea(attrs={'class': 'giant'}))
+
     class Meta:
         model = ScheduleOccurrence
 
 
 class ScheduleOccurrenceForm(MultipleOccurrenceForm):
-    room = forms.ModelChoiceField(queryset=Room.objects.all(), widget=forms.Select(attrs={'class':'extramedium asm', }))
-    device = forms.MultipleChoiceField(required=False, widget=forms.CheckboxSelectMultiple, choices = (
-        [(i.id, i) for i in DeviceDetails.objects.all()]
-        ))    
-    annotation = forms.CharField(required = False, widget=forms.Textarea())
-    is_online = forms.BooleanField(required = False)
+    room = forms.ModelChoiceField(
+        queryset=Room.objects.all(), widget=forms.Select(
+            attrs={'class': 'extramedium asm'}))
+    device = forms.MultipleChoiceField(
+        required=False, widget=forms.CheckboxSelectMultiple,
+        choices=([(i.id, i) for i in DeviceDetails.objects.all()]))
+    professionals = forms.MultipleChoiceField(
+        required=False, widget=forms.CheckboxSelectMultiple,
+        choices=([(i.id, i) for i in CareProfessional.objects.all()]))
+    annotation = forms.CharField(required=False, widget=forms.Textarea())
+    is_online = forms.BooleanField(required=False)
+    start_time_delta = forms.IntegerField(
+        label='Start time',
+        widget=forms.Select(choices=default_timeslot_offset_options_start)
+    )
+
+    end_time_delta = forms.IntegerField(
+        label='End time',
+        widget=forms.Select(choices=default_timeslot_offset_options_end)
+    )
 
     class Meta:
         model = ScheduleOccurrence
 
-
-    def __init__(self, request, *args, **kwargs):
-        super(ScheduleOccurrenceForm, self).__init__(*args, **kwargs)
-
-        # rewrite slot time based in the settings of organization schedule
-        self.fields['start_time_delta'] = forms.IntegerField(
-            label='Start time',
-            widget=forms.Select(choices=timeslot_offset_options(type='start', interval=timedelta(minutes=int(request.user.get_profile().org_active.time_slot_schedule))) )
-        )
-        
-        # rewrite slot time based in the settings of organization schedule
-        self.fields['end_time_delta'] = forms.IntegerField(
-            label='End time',
-            widget=forms.Select(choices=timeslot_offset_options(type='end', interval=timedelta(minutes=int(request.user.get_profile().org_active.time_slot_schedule))) )
-        )
-
-
-    def save(self, event, disable_check_busy = False):
+    def save(self, event, disable_check_busy=False, reserve=False):
         if self.cleaned_data['repeats'] == 'no':
             params = {}
         else:
@@ -131,30 +135,56 @@ class ScheduleOccurrenceForm(MultipleOccurrenceForm):
 
         import logging
         logging.debug("is online: " + str(self.cleaned_data['is_online']))
-
-        event.errors = event.add_occurrences(
-            self.cleaned_data['start_time'], 
-            self.cleaned_data['end_time'],
-            self.cleaned_data['room'].id,
-            self.cleaned_data['device'],
-            self.cleaned_data['annotation'],
-            self.cleaned_data['is_online'],
-            disable_check_busy,
-            **params
-        )
+        if len(self.errors) is 0:  # check for custom errors if there's any
+            event.errors = event.add_occurrences(
+                self.cleaned_data['start_time'],
+                self.cleaned_data['end_time'],
+                self.cleaned_data['room'].id,
+                self.cleaned_data['device'],
+                self.cleaned_data['annotation'],
+                self.cleaned_data['is_online'],
+                disable_check_busy,
+                reserve,
+                **params
+                )
+        else:
+            print type(self.errors)
+            error_message = []
+            # obtaining custom list of error messages
+            for values in self.errors.values():
+                for message in values:
+                    error_message.append(_(message))
+            event.errors = [{
+                'start_time': self.cleaned_data['start_time'],
+                'end_time': self.cleaned_data['end_time'],
+                'room': self.cleaned_data['room'],
+                'group': event.group,
+                'error_message': error_message,
+                }]
 
         return event
 
 
 class OccurrenceConfirmationForm(forms.ModelForm):
-    presence = forms.CharField(label=_('Presence'), required=True, widget=forms.RadioSelect(choices=OCCURRENCE_CONFIRMATION_PRESENCE, attrs={'required':'required'}) )
-    date_started = forms.DateTimeField(label=_('Time Started'), required=False, widget=SplitSelectDateTimeWidget(minute_step=5))
-    date_finished = forms.DateTimeField(label=_('Time Finished'), required=False, widget=SplitSelectDateTimeWidget(minute_step=5))
-    device = forms.MultipleChoiceField(label=_('Devices utilized in this session'), required=False, widget=forms.CheckboxSelectMultiple, choices = (
-        [(i.id, i) for i in DeviceDetails.objects.all()]
-        ))   
-    reason = forms.CharField(label=_('Unmark or Reschedule Reason (if exists)'), required = False, widget=forms.Textarea(attrs={'class':'giant'}))
-    anotation = forms.CharField(label=_('Anotation'), required = False, widget=forms.Textarea(attrs={'class':'giant'}))
+    presence = forms.CharField(
+        label=_('Presence'), required=True, widget=forms.RadioSelect(
+            choices=OCCURRENCE_CONFIRMATION_PRESENCE))
+    date_started = forms.DateTimeField(
+        label=_('Time Started'), required=False,
+        widget=SplitSelectDateTimeWidget(minute_step=5))
+    date_finished = forms.DateTimeField(
+        label=_('Time Finished'), required=False,
+        widget=SplitSelectDateTimeWidget(minute_step=5))
+    device = forms.MultipleChoiceField(
+        label=_('Devices utilized in this session'), required=False,
+        widget=forms.CheckboxSelectMultiple, choices=(
+            [(i.id, i) for i in DeviceDetails.objects.all()]))
+    reason = forms.CharField(
+        label=_('Unmark or Reschedule Reason (if exists)'), required=False,
+        widget=forms.Textarea(attrs={'class': 'giant'}))
+    anotation = forms.CharField(
+        label=_('Anotation'), required=False, widget=forms.Textarea(
+            attrs={'class': 'giant'}))
 
     def __init__(self, *args, **kwargs):
         super(OccurrenceConfirmationForm, self).__init__(*args, **kwargs)
@@ -165,4 +195,5 @@ class OccurrenceConfirmationForm(forms.ModelForm):
 
     class Meta:
         model = OccurrenceConfirmation
-        fields = ('date_started', 'date_finished', 'presence', 'reason', 'device')
+        fields = (
+            'date_started', 'date_finished', 'presence', 'reason', 'device')
