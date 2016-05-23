@@ -114,28 +114,20 @@ class ScheduleOccurrenceForm(MultipleOccurrenceForm):
         choices=([(i.id, i) for i in CareProfessional.objects.all()]))
     annotation = forms.CharField(required=False, widget=forms.Textarea())
     is_online = forms.BooleanField(required=False)
+    start_time_delta = forms.IntegerField(
+        label='Start time',
+        widget=forms.Select(choices=default_timeslot_offset_options_start)
+    )
+
+    end_time_delta = forms.IntegerField(
+        label='End time',
+        widget=forms.Select(choices=default_timeslot_offset_options_end)
+    )
 
     class Meta:
         model = ScheduleOccurrence
 
-    def __init__(self, request, *args, **kwargs):
-        super(ScheduleOccurrenceForm, self).__init__(*args, **kwargs)
-
-        # rewrite slot time based in the settings of organization schedule
-        self.fields['start_time_delta'] = forms.IntegerField(
-            label='Start time',
-            widget=forms.Select(choices=timeslot_offset_options(type='start', interval=timedelta(
-                minutes=int(request.user.get_profile().org_active.time_slot_schedule))))
-        )
-
-        # rewrite slot time based in the settings of organization schedule
-        self.fields['end_time_delta'] = forms.IntegerField(
-            label='End time',
-            widget=forms.Select(choices=timeslot_offset_options(type='end', interval=timedelta(
-                minutes=int(request.user.get_profile().org_active.time_slot_schedule))))
-        )
-
-    def save(self, event, disable_check_busy=False):
+    def save(self, event, disable_check_busy=False, reserve=False):
         if self.cleaned_data['repeats'] == 'no':
             params = {}
         else:
@@ -143,17 +135,32 @@ class ScheduleOccurrenceForm(MultipleOccurrenceForm):
 
         import logging
         logging.debug("is online: " + str(self.cleaned_data['is_online']))
-
-        event.errors = event.add_occurrences(
-            self.cleaned_data['start_time'],
-            self.cleaned_data['end_time'],
-            self.cleaned_data['room'].id,
-            self.cleaned_data['device'],
-            self.cleaned_data['annotation'],
-            self.cleaned_data['is_online'],
-            disable_check_busy,
-            **params
-        )
+        if len(self.errors) is 0:  # check for custom errors if there's any
+            event.errors = event.add_occurrences(
+                self.cleaned_data['start_time'],
+                self.cleaned_data['end_time'],
+                self.cleaned_data['room'].id,
+                self.cleaned_data['device'],
+                self.cleaned_data['annotation'],
+                self.cleaned_data['is_online'],
+                disable_check_busy,
+                reserve,
+                **params
+                )
+        else:
+            print type(self.errors)
+            error_message = []
+            # obtaining custom list of error messages
+            for values in self.errors.values():
+                for message in values:
+                    error_message.append(_(message))
+            event.errors = [{
+                'start_time': self.cleaned_data['start_time'],
+                'end_time': self.cleaned_data['end_time'],
+                'room': self.cleaned_data['room'],
+                'group': event.group,
+                'error_message': error_message,
+                }]
 
         return event
 
