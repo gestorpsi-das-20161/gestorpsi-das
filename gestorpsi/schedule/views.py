@@ -120,12 +120,17 @@ def add_event(
 
             if not request.POST.get('group'): # booking single client
 
-                referral = get_object_or_404(Referral, pk=request.POST.get('referral'), service__organization=request.user.get_profile().org_active)
+                referral = get_object_or_404(
+                    Referral, pk=request.POST.get('referral'),
+                    service__organization=request.user.get_profile().org_active)
                 event = recurrence_form.save(referral)
 
             else: # booking a group
-                group = get_object_or_404(ServiceGroup, pk=request.POST.get('group'), service__organization=request.user.get_profile().org_active, active=True)
-                if group.charged_members(): # this check is already done in template. just to prevent empty groups
+                group = get_object_or_404(
+                    ServiceGroup, pk=request.POST.get('group'),
+                    service__organization=request.user.get_profile().org_active, active=True)
+                # this check is already done in template. just to prevent empty groups
+                if group.charged_members():
                     first = True
                     for group_member in group.charged_members():
                         if first:
@@ -133,7 +138,8 @@ def add_event(
                             first = False
                         else:
                             if not event.errors:
-                                event = recurrence_form.save(group_member.referral, True) # ignore busy check
+                                event = recurrence_form.save(
+                                group_member.referral, True) # ignore busy check
 
             if not request.POST.get('group'): # booking single client
                 '''
@@ -141,46 +147,46 @@ def add_event(
                     Event per period will be created by script run by crontab everyday
                 '''
                 # check if occurrences have one payment by pack or event opened
-                for o in referral.upcoming_nopayment_occurrences_():
+                for occurrence_payment in referral.upcoming_nopayment_occurrences_():
 
                     # exist a payment for event?
-                    if Receive.objects.filter(occurrence=o).count() == 0 :
+                    if Receive.objects.filter(occurrence=occurrence_payment).count() == 0 :
 
                         # Filter payment by pack or occurrence
-                        for x in referral.covenant.filter(Q(charge=1) | Q(charge=2) ).distinct():
+                        for payment_filter in referral.covenant.filter(Q(charge=1) | Q(charge=2) ).distinct():
 
                             receive = Receive() # new
 
                             # by pack
-                            if x.charge == 2:
+                            if payment_filter.charge == 2:
                                 # check not terminated pack of same referral
-                                for p in Receive.objects.filter(occurrence__event=event, covenant_charge=2):
-                                    if not p.terminated_():
+                                for filter_pack in Receive.objects.filter(occurrence__event=event, covenant_charge=2):
+                                    if not filter_pack.terminated_():
                                         # not terminated pack
-                                        receive = p
+                                        receive = filter_pack
 
                             # by occurrence
                             # new
                             if not receive.id:
-                                receive.name = x.name
-                                receive.price = x.price
+                                receive.name = payment_filter.name
+                                receive.price = payment_filter.price
                                 receive.off = 0
-                                receive.total = x.price
-                                receive.covenant_charge = x.charge
-                                receive.covenant_id = x.id
+                                receive.total = payment_filter.price
+                                receive.covenant_charge = payment_filter.charge
+                                receive.covenant_id = payment_filter.id
                                 receive.save()
 
                                 # by pack
-                                receive.covenant_pack_size = x.event_time if x.charge == 2 else 0
+                                receive.covenant_pack_size = payment_filter.event_time if payment_filter.charge == 2 else 0
 
                                 # clear all
                                 receive.covenant_payment_way_options = ''
-                                for pw in x.payment_way.all():
-                                    x = "(%s,'%s')," % ( pw.id , pw.name ) # need be a dict
-                                    receive.covenant_payment_way_options += x
+                                for payment_way in payment_filter.payment_way.all():
+                                    payment_filter = "(%s,'%s')," % ( payment_way.id , payment_way.name ) # need be a dict
+                                    receive.covenant_payment_way_options += payment_filter
 
                             # add occurrence
-                            receive.occurrence.add(o)
+                            receive.occurrence.add(occurrence_payment)
                             # update m2m
                             receive.save()
 
