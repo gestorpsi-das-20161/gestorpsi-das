@@ -353,30 +353,9 @@ def occurrence_confirmation_form_group(
         # occurrence
         form = form_class(request.POST, instance = occurrence_confirmation, initial={ 'device':initial_device, })
 
-        if form.is_valid():
+        # Calls method that validates payment form.
+        valid_payment_form()
 
-            data = form.save(commit=False)
-            data.occurrence = occurrence
-
-            if int(data.presence) not in (1,2): # client not arrive, dont save datetime field
-                data.date_started = None
-                data.date_finished = None
-
-            data.save()
-            form.save_m2m()
-
-            # save occurrence comment
-            occurrence.annotation = request.POST['occurrence_annotation']
-            occurrence.save()
-
-            messages.success(request, _('Occurrence confirmation updated successfully'))
-            return http.HttpResponseRedirect(redirect_to or request.path)
-
-        else:
-
-            form.fields['device'].widget.choices = [(i.id, i) for i in DeviceDetails.objects.active(request.user.get_profile().org_active).filter(Q(room=occurrence.room) | Q(mobility=2, lendable=True) | Q(place =  occurrence.room.place, mobility=2, lendable=False))]
-
-            messages.error(request, _(u'Campo inválido ou obrigatório'))
 
     else:
         if hasattr(occurrence_confirmation, 'presence') and int(occurrence_confirmation.presence) not in (1,2): # load initial data if client dont arrive
@@ -440,7 +419,34 @@ def create_new_payment_form():
             form_payment.covenant_payment_way_selected = request.POST.getlist('TEMPID999FORM-pw')
             form_payment.save()
 
+def valid_payment_form():
 
+    # save if form is valid.
+    if form.is_valid():
+
+        data = form.save(commit = False)
+        data.occurrence = occurrence
+
+        if int(data.presence) not in (1,2): # client not arrive, dont save datetime field
+            data.date_started = None
+            data.date_finished = None
+
+        data.save()
+        form.save_m2m()
+
+        # save occurrence comment
+        occurrence.annotation = request.POST['occurrence_annotation']
+        occurrence.save()
+
+        messages.success(request, _('Occurrence confirmation updated successfully'))
+        return http.HttpResponseRedirect(redirect_to or request.path)
+
+    else:
+
+        form.fields['device'].widget.choices = [(i.id, i) for i in DeviceDetails.objects.active(request.user.get_profile().org_active).filter(Q(room = occurrence.room) | Q(mobility = 2, lendable = True) | Q(place =  occurrence.room.place, mobility = 2, lendable = False))]
+             
+
+        messages.error(request, _(u'Campo inválido ou obrigatório'))
 
 @permission_required_with_403('schedule.schedule_write')
 def occurrence_confirmation_form(
