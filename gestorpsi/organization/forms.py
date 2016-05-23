@@ -36,7 +36,6 @@ from gestorpsi.gcm.models.plan import Plan
 
 
 class OrganizationForm(forms.ModelForm):
+
     class Meta:
         model = Organization
-
-

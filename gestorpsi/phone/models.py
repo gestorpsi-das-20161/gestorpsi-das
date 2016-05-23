@@ -20,6 +20,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
 from gestorpsi.util.uuid_field import UuidField
 
+
 class PhoneType(models.Model):
     """
     This class was created to represent phone types. Each phone type has
@@ -29,11 +30,13 @@ class PhoneType(models.Model):
     @see: Phone
     """
     description = models.CharField(max_length=20)
-    
+
     def __unicode__(self):
         return self.description
+
     class Meta:
         ordering = ['description']
+
 
 class Phone(models.Model):
     """
@@ -60,7 +63,7 @@ class Phone(models.Model):
             return 0
         else:
             return 1
-    
+
     def __unicode__(self):
         return "(%s) %s %s" % (self.area, self.phoneNumber, self.phoneType)
 

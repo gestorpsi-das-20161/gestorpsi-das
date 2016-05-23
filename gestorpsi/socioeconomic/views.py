@@ -19,6 +19,7 @@ from gestorpsi.socioeconomic.forms import TransportationForm, IncomeForm, Income
 from gestorpsi.socioeconomic.forms import SanitationForm, PavingForm, DwellingFeaturesForm, PeopleHouseholdForm
 from gestorpsi.socioeconomic.models import Transportation
 
+
 @permission_required_with_403('socioeconomic.socioeconomic_read')
 def socioeconomic_home(request, object_id):
     object = get_object_or_404(Client, pk=object_id)
@@ -27,72 +28,75 @@ def socioeconomic_home(request, object_id):
         possessions = object.housing.possession_set.all()
     except:
         possessions = None
-    
+
     try:
         people_household = object.housing.peoplehousehold
     except:
         people_household = None
-    
+
     try:
         dwelling = object.housing.dwellingfeatures
     except:
         dwelling = None
-    
+
     try:
         paving = object.housing.paving
     except:
         paving = None
-    
+
     try:
         sanitation = object.housing.sanitation
     except:
         sanitation = None
-    
+
     try:
         eletricity = object.housing.eletricity
     except:
         eletricity = None
 
-
     return render_to_response('client/client_socioeconomic.html', {
-                                        'object': object,
-                                        'socioeconomic_menu': True,
-                                        'transportations': transportations,
-                                        'possessions': possessions,
-                                        'people_household': people_household,
-                                        'dwelling': dwelling,
-                                        'paving': paving,
-                                        'sanitation': sanitation,
-                                        'eletricity': eletricity,
-                                        }, context_instance=RequestContext(request))
+        'object': object,
+        'socioeconomic_menu': True,
+        'transportations': transportations,
+        'possessions': possessions,
+        'people_household': people_household,
+        'dwelling': dwelling,
+        'paving': paving,
+        'sanitation': sanitation,
+        'eletricity': eletricity,
+    }, context_instance=RequestContext(request))
+
 
 @permission_required_with_403('socioeconomic.socioeconomic_read')
 def socioeconomic_transportation(request, object_id, transportation_id=0):
     object = get_object_or_404(Client, pk=object_id)
-    transportation_object = get_object_or_None(Transportation, id=transportation_id) or Transportation()
+    transportation_object = get_object_or_None(
+        Transportation, id=transportation_id) or Transportation()
     transportation_form = TransportationForm(instance=transportation_object)
     transportations = [t for t in object.transportation_set.all()]
     return render_to_response('client/client_socio_transportation.html', {
-                                        'object': object,
-                                        'socioeconomic_menu': True,
-                                        'transportations': transportations,
-                                        'transportation_form': transportation_form,
-                                        }, context_instance=RequestContext(request))
+        'object': object,
+        'socioeconomic_menu': True,
+        'transportations': transportations,
+        'transportation_form': transportation_form,
+    }, context_instance=RequestContext(request))
+
 
 @permission_required_with_403('socioeconomic.socioeconomic_write')
 def socioeconomic_transportation_save(request, object_id, transportation_id=0):
     object = get_object_or_404(Client, pk=object_id)
-    transportation_object = get_object_or_None(Transportation, id=transportation_id) or Transportation()
-    transportation_form = TransportationForm(request.POST, instance=transportation_object)
+    transportation_object = get_object_or_None(
+        Transportation, id=transportation_id) or Transportation()
+    transportation_form = TransportationForm(
+        request.POST, instance=transportation_object)
     transp = transportation_form.save(commit=False)
     transp.client = object
     transp.save()
     transportations = [t for t in object.transportation_set.all()]
     messages.success(request, _('Transportation saved successfully'))
     return render_to_response('client/client_socio_transportation.html', {
-                                        'object': object,
-                                        'socioeconomic_menu': True,
-                                        'transportations': transportations,
-                                        'transportation_form': transportation_form,
-                                        }, context_instance=RequestContext(request))
-
+        'object': object,
+        'socioeconomic_menu': True,
+        'transportations': transportations,
+        'transportation_form': transportation_form,
+    }, context_instance=RequestContext(request))

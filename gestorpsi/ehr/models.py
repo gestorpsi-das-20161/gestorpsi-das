@@ -26,7 +26,7 @@ DIAGNOSIS_STATUS = (
     ('2', _('Closed')),
 )
 
-DIAGNOSIS_STATUS2= (
+DIAGNOSIS_STATUS2 = (
     ('1', _('Present')),
     ('2', _('Absence')),
 )
@@ -72,9 +72,11 @@ EDIT_STATUS = (
     ('99', _("Unknown")),
 )
 
+
 class TimeUnit(models.Model):
     unit = models.CharField(max_length=10)
     time = models.CharField(max_length=2, choices=UNITS)
+
 
 class Demand(models.Model):
     date_created = models.DateTimeField(auto_now_add=True)
@@ -83,10 +85,13 @@ class Demand(models.Model):
     initial_complaint = models.BooleanField()
     demand = models.TextField(blank=True)
     description = models.TextField(blank=True)
-    how_long_it_happens = models.OneToOneField(TimeUnit, null=True, related_name="how_long_it_happens")
-    frequency = models.OneToOneField(TimeUnit, null=True, related_name="frequency")
+    how_long_it_happens = models.OneToOneField(
+        TimeUnit, null=True, related_name="how_long_it_happens")
+    frequency = models.OneToOneField(
+        TimeUnit, null=True, related_name="frequency")
     severity = models.CharField(max_length=1, choices=SEVERITY)
-    duration = models.OneToOneField(TimeUnit, null=True, related_name="duration")
+    duration = models.OneToOneField(
+        TimeUnit, null=True, related_name="duration")
     demand_status = models.CharField(max_length=1, choices=DEMAND_STATUS)
     demand_resolution = models.DateTimeField(null=True)
     bibliography = models.TextField(blank=True)
@@ -95,14 +100,15 @@ class Demand(models.Model):
     client = models.ForeignKey(Client)
     referral = models.ForeignKey(Referral)
     occurrence = models.ForeignKey(ScheduleOccurrence, null=True)
-    #related_terminology -> terminologias
-    #attached_files -> upload generico
+    # related_terminology -> terminologias
+    # attached_files -> upload generico
 
     def __unicode__(self):
         return u"%s" % self.demand
 
     class Meta:
         ordering = ['-occurrence']
+
 
 class Diagnosis(models.Model):
     date_created = models.DateTimeField(auto_now_add=True)
@@ -112,7 +118,8 @@ class Diagnosis(models.Model):
     diagnosis_resolution = models.DateTimeField(null=True)
     diagnosis = models.TextField(blank=True)
     diagnosis_status = models.CharField(max_length=1, choices=DIAGNOSIS_STATUS)
-    diagnosis_status2 = models.CharField(max_length=1, choices=DIAGNOSIS_STATUS2)
+    diagnosis_status2 = models.CharField(
+        max_length=1, choices=DIAGNOSIS_STATUS2)
     clinical_description = models.TextField(blank=True)
     severity = models.CharField(max_length=1, choices=SEVERITY)
     treatment_indicated = models.TextField(blank=True)
@@ -123,15 +130,16 @@ class Diagnosis(models.Model):
     referral = models.ForeignKey(Referral)
     occurrence = models.ForeignKey(ScheduleOccurrence, null=True)
     #related_demand = models.ManyToMany(Demand, null=True)
-    #diagnosis -> terminologias
-    #comorbity -> terminologias
-    #attached_files -> upload genérico
+    # diagnosis -> terminologias
+    # comorbity -> terminologias
+    # attached_files -> upload genérico
 
     def __unicode__(self):
         return u"%s" % self.diagnosis
 
     class Meta:
         ordering = ['-occurrence']
+
 
 class Session(models.Model):
     date_created = models.DateTimeField(auto_now_add=True)
@@ -143,13 +151,13 @@ class Session(models.Model):
     referral = models.ForeignKey(Referral)
     occurrence = models.OneToOneField(ScheduleOccurrence)
     comments = models.TextField(blank=True)
-    #procedures -> procedimentos
-    #device -> ja tem no pós-atendimento
-    #upload
-    
+    # procedures -> procedimentos
+    # device -> ja tem no pós-atendimento
+    # upload
+
     def __unicode__(self):
         return u"%s" % self.descriptive
-    
+
     class Meta:
         ordering = ['-occurrence']
 

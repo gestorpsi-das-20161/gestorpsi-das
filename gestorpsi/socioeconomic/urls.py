@@ -20,10 +20,15 @@ from gestorpsi.socioeconomic.views import socioeconomic_home, socioeconomic_tran
 from gestorpsi.authentication.views import login_check
 
 urlpatterns = patterns('',
-    (r'^$', login_check(index)), #list objects
-    (r'^(?P<object_id>[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})/socioeconomic/$', login_check(socioeconomic_home)),
-    (r'^(?P<object_id>[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})/socioeconomic/transportation/$', login_check(socioeconomic_transportation)),
-    (r'^(?P<object_id>[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})/socioeconomic/transportation/(?P<transportation_id>(\d)+)/$', login_check(socioeconomic_transportation)),
-    (r'^(?P<object_id>[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})/socioeconomic/transportation/save/$', login_check(socioeconomic_transportation_save)),
-    (r'^(?P<object_id>[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})/socioeconomic/transportation/save/(?P<transportation_id>(\d)+)/$', login_check(socioeconomic_transportation_save)),
-)
+                       (r'^$', login_check(index)),  # list objects
+                       (r'^(?P<object_id>[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})/socioeconomic/$',
+                           login_check(socioeconomic_home)),
+                       (r'^(?P<object_id>[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})/socioeconomic/transportation/$',
+                           login_check(socioeconomic_transportation)),
+                       (r'^(?P<object_id>[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})/socioeconomic/transportation/(?P<transportation_id>(\d)+)/$',
+                           login_check(socioeconomic_transportation)),
+                       (r'^(?P<object_id>[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})/socioeconomic/transportation/save/$',
+                           login_check(socioeconomic_transportation_save)),
+                       (r'^(?P<object_id>[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})/socioeconomic/transportation/save/(?P<transportation_id>(\d)+)/$',
+                           login_check(socioeconomic_transportation_save)),
+                       )

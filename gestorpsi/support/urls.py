@@ -19,6 +19,7 @@ from gestorpsi.support.views import ticket_form
 from gestorpsi.authentication.views import login_check
 
 urlpatterns = patterns('',
-    (r'^ticket/form/$', login_check(ticket_form)), #form
-    (r'^ticket/sent/$', 'django.views.generic.simple.direct_to_template', {'template': 'support/ticket_sent.html'}), #form sent
-)
+                       (r'^ticket/form/$', login_check(ticket_form)),  # form
+                       (r'^ticket/sent/$', 'django.views.generic.simple.direct_to_template',
+                           {'template': 'support/ticket_sent.html'}),  # form sent
+                       )

@@ -20,18 +20,22 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
 from gestorpsi.util.uuid_field import UuidField
 
+
 class EmailType(models.Model):
-    description= models.CharField(max_length=45)
+    description = models.CharField(max_length=45)
+
     def __unicode__(self):
         return self.description
+
     class Meta:
         ordering = ['description']
 
+
 class Email(models.Model):
-    id = UuidField(primary_key= True)
+    id = UuidField(primary_key=True)
     email = models.CharField(max_length=100, blank=True)
     email_type = models.ForeignKey(EmailType)
-    
+
     # Generic Relation
     content_type = models.ForeignKey(ContentType)
     object_id = models.CharField(max_length=36)
@@ -52,6 +56,7 @@ class Email(models.Model):
 
 reversion.register(Email)
 
+
 class Site(models.Model):
     id = UuidField(primary_key=True)
     description = models.CharField(max_length=100, blank=True)
@@ -67,8 +72,8 @@ class Site(models.Model):
            (self.site == other.site):
             return 0
         else:
-            return 1    
-    
+            return 1
+
     def __unicode__(self):
         return self.site
 
@@ -77,12 +82,16 @@ class Site(models.Model):
 
 reversion.register(Site)
 
+
 class IMNetwork(models.Model):
     description = models.CharField(max_length=30)
+
     def __unicode__(self):
         return self.description
+
     class Meta:
         ordering = ['description']
+
 
 class InstantMessenger(models.Model):
     id = UuidField(primary_key=True)

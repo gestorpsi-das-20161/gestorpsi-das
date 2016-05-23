@@ -36,44 +36,57 @@ from gestorpsi.util.decorators import permission_required_with_403
 from gestorpsi.util.views import get_object_or_None
 from gestorpsi.contact.models import Contact
 
+
 def have_organization_perms_save(request, object):
     if  object.organization != request.user.get_profile().org_active \
-        or ( not object.revision_created().user == request.user \
-        and 'administrator' not in [ g.name for g in request.user.groups.all()] \
-        and 'secretary' not in [ g.name for g in request.user.groups.all()]):
+        or (not object.revision_created().user == request.user
+            and 'administrator' not in [g.name for g in request.user.groups.all()]
+            and 'secretary' not in [g.name for g in request.user.groups.all()]):
         return False
     else:
         return True
+
 
 def have_careprofessional_perms_save(request, object):
     if  request.user.get_profile().org_active not in [ i.organization for i in object.person.organization.all()] \
-        or ( not object.revision_created().user == request.user \
-        and 'administrator' not in [ g.name for g in request.user.groups.all()] \
-        and 'secretary' not in [ g.name for g in request.user.groups.all()]):
+        or (not object.revision_created().user == request.user
+            and 'administrator' not in [g.name for g in request.user.groups.all()]
+            and 'secretary' not in [g.name for g in request.user.groups.all()]):
         return False
     else:
         return True
 
+
 @permission_required_with_403('contact.contact_write')
-def extra_data_save(request, object = None):
-    phone_save(object, request.POST.getlist('phoneId'), request.POST.getlist('area'), request.POST.getlist('phoneNumber'), request.POST.getlist('ext'), request.POST.getlist('phoneType'))
-    email_save(object, request.POST.getlist('email_id'), request.POST.getlist('email_email'), request.POST.getlist('email_type'))
-    site_save(object, request.POST.getlist('site_id'), request.POST.getlist('site_description'), request.POST.getlist('site_site'))
-    im_save(object, request.POST.getlist('im_id'), request.POST.getlist('im_identity'), request.POST.getlist('im_network'))
+def extra_data_save(request, object=None):
+    phone_save(object, request.POST.getlist('phoneId'), request.POST.getlist('area'), request.POST.getlist(
+        'phoneNumber'), request.POST.getlist('ext'), request.POST.getlist('phoneType'))
+    email_save(object, request.POST.getlist('email_id'), request.POST.getlist(
+        'email_email'), request.POST.getlist('email_type'))
+    site_save(object, request.POST.getlist('site_id'), request.POST.getlist(
+        'site_description'), request.POST.getlist('site_site'))
+    im_save(object, request.POST.getlist('im_id'), request.POST.getlist(
+        'im_identity'), request.POST.getlist('im_network'))
     address_save(object, request.POST.getlist('addressId'), request.POST.getlist('addressPrefix'),
-        request.POST.getlist('addressLine1'), request.POST.getlist('addressLine2'),
-        request.POST.getlist('addressNumber'), request.POST.getlist('neighborhood'),
-        request.POST.getlist('zipCode'), request.POST.getlist('addressType'),
-        request.POST.getlist('city'), request.POST.getlist('foreignCountry'),
-        request.POST.getlist('foreignState'), request.POST.getlist('foreignCity'))
+                 request.POST.getlist(
+                     'addressLine1'), request.POST.getlist('addressLine2'),
+                 request.POST.getlist(
+                     'addressNumber'), request.POST.getlist('neighborhood'),
+                 request.POST.getlist(
+                     'zipCode'), request.POST.getlist('addressType'),
+                 request.POST.getlist('city'), request.POST.getlist(
+                     'foreignCountry'),
+                 request.POST.getlist('foreignState'), request.POST.getlist('foreignCity'))
     return object
 
-@permission_required_with_403('contact.contact_list')
-def index(request, deactive = False, template='contact/contact_list.html'):
-    return render_to_response(template, locals(), context_instance=RequestContext(request))
 
 @permission_required_with_403('contact.contact_list')
-def list(request, page = 1, initial = None, filter = None, deactive=False, filter_type='internal'):
+def index(request, deactive=False, template='contact/contact_list.html'):
+    return render_to_response(template, locals(), context_instance=RequestContext(request))
+
+
+@permission_required_with_403('contact.contact_list')
+def list(request, page=1, initial=None, filter=None, deactive=False, filter_type='internal'):
     user = request.user
     org = user.get_profile().org_active
 
@@ -81,7 +94,7 @@ def list(request, page = 1, initial = None, filter = None, deactive=False, filte
 
     if initial:
         filter_name = initial + '%'
-        
+
     if filter:
         filter_name = '%' + filter + '%'
 
@@ -93,22 +106,22 @@ def list(request, page = 1, initial = None, filter = None, deactive=False, filte
         search_method = Contact.objects.filter
 
     list = search_method(
-        org_id = request.user.get_profile().org_active.id, 
-        filter_name = filter_name,
+        org_id=request.user.get_profile().org_active.id,
+        filter_name=filter_name,
         deactive=deactive,
-        )
+    )
 
     organizations_count = len(search_method(
-        org_id = request.user.get_profile().org_active.id, 
-        filter_name = None,
-        filter_type = 1,
+        org_id=request.user.get_profile().org_active.id,
+        filter_name=None,
+        filter_type=1,
         deactive=deactive,
     ))
 
     professionals_count = len(search_method(
-        org_id = request.user.get_profile().org_active.id, 
-        filter_name = None,
-        filter_type = 2,
+        org_id=request.user.get_profile().org_active.id,
+        filter_name=None,
+        filter_type=2,
         deactive=deactive,
     ))
 
@@ -116,7 +129,7 @@ def list(request, page = 1, initial = None, filter = None, deactive=False, filte
     paginator = Paginator(list, settings.PAGE_RESULTS)
     object = paginator.page(page)
 
-    array = {} #json
+    array = {}  # json
     i = 0
 
     array['util'] = {
@@ -132,11 +145,10 @@ def list(request, page = 1, initial = None, filter = None, deactive=False, filte
         'organizations_length': organizations_count,
     }
 
-    
     array['paginator'] = {}
     for p in paginator.page_range:
         array['paginator'][p] = p
-    
+
     for o in object.object_list:
         array[i] = {
             'id': o.id,
@@ -152,91 +164,102 @@ def list(request, page = 1, initial = None, filter = None, deactive=False, filte
 
     return HttpResponse(simplejson.dumps(array, sort_keys=True), mimetype='application/json')
 
+
 @permission_required_with_403('contact.contact_read')
-def contact_organization_form(request, object_id = None):
+def contact_organization_form(request, object_id=None):
     object = get_object_or_None(Organization, pk=object_id) or Organization()
 
-    if object.id: # register already exists. let's check access permissions
-        if object.is_local(): # local contact, only visible for users from the same organization
+    if object.id:  # register already exists. let's check access permissions
+        if object.is_local():  # local contact, only visible for users from the same organization
             if object.organization != request.user.get_profile().org_active:
                 raise Http404
-        else: # real organization. access allowed only if it has been set to Visible
-            if not object.visible: # organization set to NOT visible
-                    raise Http404
+        else:  # real organization. access allowed only if it has been set to Visible
+            if not object.visible:  # organization set to NOT visible
+                raise Http404
 
-        # check if user will have permission to save it, and pass it to template
+        # check if user will have permission to save it, and pass it to
+        # template
         if not have_organization_perms_save(request, object):
             hide_save_buttom = True
 
     try:
-        Cities = City.objects.filter(state=request.user.get_profile().org_active.address.all()[0].city.state)
+        Cities = City.objects.filter(
+            state=request.user.get_profile().org_active.address.all()[0].city.state)
     except:
         Cities = {}
 
     countries = Country.objects.all()
     States = State.objects.all()
     AddressTypes = AddressType.objects.all()
-    PhoneTypes = PhoneType.objects.all() 
-    EmailTypes = EmailType.objects.all() 
+    PhoneTypes = PhoneType.objects.all()
+    EmailTypes = EmailType.objects.all()
     IMNetworks = IMNetwork.objects.all()
 
-    phones    = object.phones.all()
+    phones = object.phones.all()
     addresses = object.address.all()
-    emails    = object.emails.all()
-    websites     = object.sites.all()
+    emails = object.emails.all()
+    websites = object.sites.all()
     ims = object.instantMessengers.all()
 
     clss = request.GET.get('clss')
 
     return render_to_response('contact/contact_organization_form.html', locals(),
-                                     context_instance=RequestContext(request)
-                                     )
+                              context_instance=RequestContext(request)
+                              )
+
 
 @permission_required_with_403('contact.contact_read')
-def contact_professional_form(request, object_id = None):
-    object = get_object_or_None(CareProfessional, pk=object_id) or CareProfessional()
-    organizations = Organization.objects.filter(organization=request.user.get_profile().org_active, visible=True)
+def contact_professional_form(request, object_id=None):
+    object = get_object_or_None(
+        CareProfessional, pk=object_id) or CareProfessional()
+    organizations = Organization.objects.filter(
+        organization=request.user.get_profile().org_active, visible=True)
     if object.active:
         organizations = organizations.filter(active=True)
 
-    if object.id: # register already exists. let's check access permissions
-        if not False in [o.is_local() for o in object.person.organization.all()]: # POSSIBLE local contact, only visible for users from the same organization
-            if request.user.get_profile().org_active not in [ i.organization for i in object.person.organization.all()]:
+    if object.id:  # register already exists. let's check access permissions
+        # POSSIBLE local contact, only visible for users from the same
+        # organization
+        if not False in [o.is_local() for o in object.person.organization.all()]:
+            if request.user.get_profile().org_active not in [i.organization for i in object.person.organization.all()]:
                 raise Http404
-        else: # POSSIBLE real organization. access allowed only if it has been set to Visible
+        else:  # POSSIBLE real organization. access allowed only if it has been set to Visible
             if False in [o.visible for o in object.person.organization.all()]:
                 raise Http404
 
-        # check if user will have permission to save it, and pass it to template
+        # check if user will have permission to save it, and pass it to
+        # template
         if not have_careprofessional_perms_save(request, object):
             hide_save_buttom = True
 
     if object_id:
-        phones    = object.person.phones.all()
+        phones = object.person.phones.all()
         addresses = object.person.address.all()
-        emails    = object.person.emails.all()
-        websites     = object.person.sites.all()
+        emails = object.person.emails.all()
+        websites = object.person.sites.all()
         ims = object.person.instantMessengers.all()
 
     countries = Country.objects.all()
     States = State.objects.all()
     AddressTypes = AddressType.objects.all()
-    PhoneTypes = PhoneType.objects.all() 
-    EmailTypes = EmailType.objects.all() 
+    PhoneTypes = PhoneType.objects.all()
+    EmailTypes = EmailType.objects.all()
     IMNetworks = IMNetwork.objects.all()
     professions = Profession.objects.all()
 
     try:
-        Cities = City.objects.filter(state=request.user.get_profile().org_active.address.all()[0].city.state)
+        Cities = City.objects.filter(
+            state=request.user.get_profile().org_active.address.all()[0].city.state)
     except:
         Cities = {}
-    
+
     return render_to_response('contact/contact_professional_form.html', locals(),
-                                     context_instance=RequestContext(request)
-                                     )
+                              context_instance=RequestContext(request)
+                              )
+
 
 @permission_required_with_403('contact.contact_write')
-def contact_organization_save(request, object_id = None):
+def contact_organization_save(request, object_id=None):
     object = get_object_or_None(Organization, pk=object_id) or Organization()
 
     # check if user is the owner of the register or have admistration profile
@@ -244,7 +267,7 @@ def contact_organization_save(request, object_id = None):
         return render_to_response('403.html', {'object': _("Access Denied"), }, context_instance=RequestContext(request))
 
     if not request.POST.get('name'):
-        return HttpResponseRedirect(('/contact/form/organization/' if not object.id else ('/contact/form/organization/%s/') % object.id ))
+        return HttpResponseRedirect(('/contact/form/organization/' if not object.id else ('/contact/form/organization/%s/') % object.id))
 
     object.name = request.POST.get('name')
     object.short_name = slugify(object.name)
@@ -258,16 +281,18 @@ def contact_organization_save(request, object_id = None):
     except IntegrityError:
         from django.db import connection
         connection.close()
-        messages.success(request, _('This organization has already been registered'))
+        messages.success(request, _(
+            'This organization has already been registered'))
         return HttpResponseRedirect('/contact/form/organization/?clss=error')
 
     object = extra_data_save(request, object)
-    
+
     messages.success(request, _('Organization contact saved successfully'))
     return HttpResponseRedirect('/contact/form/organization/%s/' % (object.id))
 
+
 @permission_required_with_403('contact.contact_write')
-def contact_professional_save(request, object_id = None):
+def contact_professional_save(request, object_id=None):
 
     try:
         object = get_object_or_404(CareProfessional, pk=object_id)
@@ -281,13 +306,15 @@ def contact_professional_save(request, object_id = None):
         return render_to_response('403.html', {'object': _("Access Denied"), }, context_instance=RequestContext(request))
 
     if not request.POST.get('name'):
-        return HttpResponseRedirect(('/contact/form/professional/' if not object.id else ('/contact/form/professional/%s/') % object.id ))
+        return HttpResponseRedirect(('/contact/form/professional/' if not object.id else ('/contact/form/professional/%s/') % object.id))
 
     if not object.professionalIdentification:
-        if request.POST.get('symbol'): 
+        if request.POST.get('symbol'):
             identification = ProfessionalIdentification()
-            identification.profession = Profession.objects.get(id=request.POST.get('service_profession'))
-            identification.registerNumber = request.POST.get('professional_subscription')
+            identification.profession = Profession.objects.get(
+                id=request.POST.get('service_profession'))
+            identification.registerNumber = request.POST.get(
+                'professional_subscription')
             identification.save()
             object.professionalIdentification = identification
         else:
@@ -297,17 +324,17 @@ def contact_professional_save(request, object_id = None):
     person.save()
 
     person.organization.remove()
-    person.organization.add(Organization.objects.get(pk=request.POST.get('organization')))
+    person.organization.add(Organization.objects.get(
+        pk=request.POST.get('organization')))
 
     person = extra_data_save(request, person)
-    
+
     object.comments = request.POST.get('comments')
     object.person = person
     object.save()
-    
+
     messages.success(request, _('Professional contact saved successfully'))
     return HttpResponseRedirect('/contact/form/professional/%s/' % (object.id))
-
 
 
 '''
@@ -318,6 +345,8 @@ def contact_professional_save(request, object_id = None):
                   [2] = name
                   to append in select.
 '''
+
+
 @permission_required_with_403('contact.contact_write')
 def save_mini(request):
 
@@ -325,10 +354,10 @@ def save_mini(request):
     obj = Organization()
 
     if request.POST.get('label'):
-        if Organization.objects.filter(short_name=slugify(request.POST.get('label')) ):
+        if Organization.objects.filter(short_name=slugify(request.POST.get('label'))):
             r = True
         else:
-            obj.name = request.POST.get('label') # adding by mini form
+            obj.name = request.POST.get('label')  # adding by mini form
             obj.short_name = slugify(request.POST.get('label'))
             obj.organization = user.get_profile().org_active
             obj.contact_owner = user.get_profile().person
@@ -338,22 +367,24 @@ def save_mini(request):
     return HttpResponse(r)
 
 
-
 @permission_required_with_403('contact.contact_write')
 def save_mini_professional(request):
     object = CareProfessional()
     person = Person()
     person.name = request.POST.get('label')
     person.save()
-    person.organization.add(Organization.objects.get(pk=request.POST.get('organization')))
+    person.organization.add(Organization.objects.get(
+        pk=request.POST.get('organization')))
     object.person = person
     object.save()
 
     return HttpResponse("%s" % (object.id))
 
+
 @permission_required_with_403('contact.contact_write')
-def contact_organization_order(request, object_id = None):
-    object = get_object_or_404(Organization, pk=object_id, organization=request.user.get_profile().org_active)
+def contact_organization_order(request, object_id=None):
+    object = get_object_or_404(
+        Organization, pk=object_id, organization=request.user.get_profile().org_active)
 
     # check if user is the owner of the register or have admistration profile
     if not have_organization_perms_save(request, object):
@@ -369,12 +400,15 @@ def contact_organization_order(request, object_id = None):
 
     object.save(force_update=True)
 
-    messages.success(request, ('%s' % (_('Contact activated successfully') if object.active else _('Contact deactivated successfully'))))
+    messages.success(request, ('%s' % (_('Contact activated successfully')
+                                       if object.active else _('Contact deactivated successfully'))))
     return HttpResponseRedirect('/contact/form/organization/%s/' % (object.id))
 
+
 @permission_required_with_403('contact.contact_write')
-def contact_professional_order(request, object_id = None):
-    object = get_object_or_404(CareProfessional, pk=object_id, person__organization__organization=request.user.get_profile().org_active)
+def contact_professional_order(request, object_id=None):
+    object = get_object_or_404(CareProfessional, pk=object_id,
+                               person__organization__organization=request.user.get_profile().org_active)
 
     # check if user is the owner of the register or have admistration profile
     if not have_careprofessional_perms_save(request, object):
@@ -391,5 +425,6 @@ def contact_professional_order(request, object_id = None):
 
     object.save(force_update=True)
 
-    messages.success(request, ('%s' % (_('Contact activated successfully') if object.active else _('Contact deactivated successfully'))))
+    messages.success(request, ('%s' % (_('Contact activated successfully')
+                                       if object.active else _('Contact deactivated successfully'))))
     return HttpResponseRedirect('/contact/form/professional/%s/' % (object.id))

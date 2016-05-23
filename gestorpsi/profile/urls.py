@@ -19,10 +19,12 @@ from gestorpsi.profile.views import form, save, form_careprofessional, save_care
 from gestorpsi.authentication.views import login_check
 
 urlpatterns = patterns('',
-    (r'^$', login_check(form)), #profile form
-    (r'^careprofessional/$', login_check(form_careprofessional)), #professional profile form
-    (r'^client/', include('gestorpsi.profile.client_urls')),
-    (r'^save/$', login_check(save)), #save new object
-    (r'^save/careprofessional/$', login_check(save_careprofessional)), #save new object
-    (r'^chpass/$', login_check(change_pass)), #change password
-)
+                       (r'^$', login_check(form)),  # profile form
+                       # professional profile form
+                       (r'^careprofessional/$', login_check(form_careprofessional)),
+                       (r'^client/', include('gestorpsi.profile.client_urls')),
+                       (r'^save/$', login_check(save)),  # save new object
+                       (r'^save/careprofessional/$',
+                        login_check(save_careprofessional)),  # save new object
+                       (r'^chpass/$', login_check(change_pass)),  # change password
+                       )

@@ -22,14 +22,15 @@ GNU General Public License for more details.
 
 from django.db import connection
 
+
 class ShowQueries:
 
-#    def process_request(self, request):
-#        for q in connection.queries:
-#            print "=============================================="
-#            print q
-#            print "=============================================="
-#
+    #    def process_request(self, request):
+    #        for q in connection.queries:
+    #            print "=============================================="
+    #            print q
+    #            print "=============================================="
+    #
     def process_view(self, request, view_func, view_args, view_kwargs):
         if view_func.__module__ == 'gestorpsi.client.views':
             print "///////////////////////////////////////////////////"

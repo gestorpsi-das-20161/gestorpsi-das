@@ -30,67 +30,82 @@ from django.utils import simplejson
 from gestorpsi.util.decorators import permission_required_with_403
 from gestorpsi.person.views import person_json_list
 
-@permission_required_with_403('users.users_list')
-def index(request, deactive = False):
-    return render_to_response('users/users_list.html', locals(), context_instance=RequestContext(request))    
 
 @permission_required_with_403('users.users_list')
-def list(request, page = 1, initial = None, filter = None, deactive = False):
+def index(request, deactive=False):
+    return render_to_response('users/users_list.html', locals(), context_instance=RequestContext(request))
+
+
+@permission_required_with_403('users.users_list')
+def list(request, page=1, initial=None, filter=None, deactive=False):
     user = request.user
 
     if deactive:
-        object = Profile.objects.filter(org_active = user.get_profile().org_active, user__is_active = False).order_by('user__username')
+        object = Profile.objects.filter(org_active=user.get_profile(
+        ).org_active, user__is_active=False).order_by('user__username')
     else:
-        object = Profile.objects.filter(org_active = user.get_profile().org_active, user__is_active = True).order_by('user__username')
+        object = Profile.objects.filter(org_active=user.get_profile(
+        ).org_active, user__is_active=True).order_by('user__username')
 
     if initial:
-        object = object.filter(person__name__istartswith = initial)
-        
+        object = object.filter(person__name__istartswith=initial)
+
     if filter:
-        object = object.filter(person__name__icontains = filter)
+        object = object.filter(person__name__icontains=filter)
 
     return HttpResponse(simplejson.dumps(person_json_list(request, object, 'users.users_read', page), sort_keys=True),
-                            mimetype='application/json')
+                        mimetype='application/json')
+
 
 @permission_required_with_403('users.users_read')
 def form(request, object_id=None):
     user = request.user
     try:
-        profile = Profile.objects.get(person=object_id, person__organization=request.user.get_profile().org_active)
+        profile = Profile.objects.get(
+            person=object_id, person__organization=request.user.get_profile().org_active)
         # have just one administrator?
         show = "False"
-        
-        if ( (Group.objects.get(name='administrator').user_set.all().filter(profile__organization=user.get_profile().org_active).count()) == 1 ):
-            if (profile.user.groups.filter(name='administrator').count() == 1 ):
+
+        if ((Group.objects.get(name='administrator').user_set.all().filter(profile__organization=user.get_profile().org_active).count()) == 1):
+            if (profile.user.groups.filter(name='administrator').count() == 1):
                 show = "True"
 
-        groups = [False, False, False, False, False]   # Template Permission Order: Admin, Psycho, Secretary, Client and Student
+        # Template Permission Order: Admin, Psycho, Secretary, Client and
+        # Student
+        groups = [False, False, False, False, False]
         for g in profile.user.groups.all():
-            if g.name == "administrator": groups[0] = True
-            if g.name == "professional":  groups[1] = True
-            if g.name == "secretary":     groups[2] = True
-            if g.name == "client":        groups[3] = True
-            if g.name == "student":       groups[4] = True
+            if g.name == "administrator":
+                groups[0] = True
+            if g.name == "professional":
+                groups[1] = True
+            if g.name == "secretary":
+                groups[2] = True
+            if g.name == "client":
+                groups[3] = True
+            if g.name == "student":
+                groups[4] = True
         return render_to_response('users/users_form.html', {
-                                'show': show,
-                                'profile': profile,
-                                'person': profile.person,
-                                'emails': profile.person.emails.all(),
-                                'groups': groups, },
-                                context_instance=RequestContext(request))
+            'show': show,
+            'profile': profile,
+            'person': profile.person,
+            'emails': profile.person.emails.all(),
+            'groups': groups, },
+            context_instance=RequestContext(request))
     except:
         return render_to_response('users/users_form.html', {
-                            'person_list': Person.objects.filter(pk=object_id, organization=request.user.get_profile().org_active, profile=None),
-                            'person': Person.objects.get(pk=object_id, organization=request.user.get_profile().org_active),
-                            'clss':request.GET.get('clss'),
-                            }, context_instance=RequestContext(request))
+            'person_list': Person.objects.filter(pk=object_id, organization=request.user.get_profile().org_active, profile=None),
+            'person': Person.objects.get(pk=object_id, organization=request.user.get_profile().org_active),
+            'clss': request.GET.get('clss'),
+        }, context_instance=RequestContext(request))
+
 
 @permission_required_with_403('users.users_read')
 def add(request):
     return render_to_response('users/users_form.html', {
-                            'person_list': Person.objects.filter(organization = request.user.get_profile().org_active, profile = None),
-                            'clss':request.GET.get('clss'),
-                            }, context_instance=RequestContext(request))
+        'person_list': Person.objects.filter(organization=request.user.get_profile().org_active, profile=None),
+        'clss': request.GET.get('clss'),
+    }, context_instance=RequestContext(request))
+
 
 @permission_required_with_403('users.users_write')
 def create_user(request):
@@ -98,10 +113,12 @@ def create_user(request):
         raise Http404
 
     if User.objects.filter(username=request.POST.get('username').strip().lower()):
-        messages.success(request, _('Error adding user <b>%s</b>: Username already exists.') % request.POST.get('username').strip().lower())
+        messages.success(request, _('Error adding user <b>%s</b>: Username already exists.') %
+                         request.POST.get('username').strip().lower())
         return HttpResponseRedirect('/user/add/?clss=error')
-        
-    person = get_object_or_404(Person, pk=request.POST.get('id_person'), organization=request.user.get_profile().org_active)
+
+    person = get_object_or_404(Person, pk=request.POST.get(
+        'id_person'), organization=request.user.get_profile().org_active)
     organization = request.user.get_profile().org_active
     username = request.POST.get('username').strip().lower()
     password = request.POST.get('password')
@@ -110,13 +127,17 @@ def create_user(request):
     permissions = request.POST.getlist('perms')
 
     if not password == pwd_conf:
-        messages.success(request, _('Error: Supplied passwords are differents.'))
+        messages.success(request, _(
+            'Error: Supplied passwords are differents.'))
         return HttpResponseRedirect('/user/add/?clss=error')
-    
-    site_url = "http://%s" % get_current_site(request).domain if not request.is_secure else "http://%s" % get_current_site(request).domain
-    user = RegistrationProfile.objects.create_inactive_user(username, email, password, site_url)
 
-    user.set_password(password) # this is required! without it, password will not set ok
+    site_url = "http://%s" % get_current_site(
+        request).domain if not request.is_secure else "http://%s" % get_current_site(request).domain
+    user = RegistrationProfile.objects.create_inactive_user(
+        username, email, password, site_url)
+
+    # this is required! without it, password will not set ok
+    user.set_password(password)
     user.save(force_update=True)
 
     profile = Profile(user=user)
@@ -124,36 +145,44 @@ def create_user(request):
     profile.temp = password    # temporary field (LDAP)
     profile.person = person
     profile.save()
-    #profile.organization.add(organization)
+    # profile.organization.add(organization)
 
     if permissions.count('administrator'):
-        Role.objects.create(profile=profile, organization=organization, group=Group.objects.get(name='administrator'))
+        Role.objects.create(profile=profile, organization=organization,
+                            group=Group.objects.get(name='administrator'))
         profile.user.groups.add(Group.objects.get(name='administrator'))
-        
+
     if permissions.count('professional'):
-        Role.objects.create(profile=profile, organization=organization, group=Group.objects.get(name='professional'))
+        Role.objects.create(profile=profile, organization=organization,
+                            group=Group.objects.get(name='professional'))
         profile.user.groups.add(Group.objects.get(name='professional'))
-                    
+
     if permissions.count('secretary'):
-        Role.objects.create(profile=profile, organization=organization, group=Group.objects.get(name='secretary'))
+        Role.objects.create(profile=profile, organization=organization,
+                            group=Group.objects.get(name='secretary'))
         profile.user.groups.add(Group.objects.get(name='secretary'))
-                    
+
     if permissions.count('client'):
-        Role.objects.create(profile=profile, organization=organization, group=Group.objects.get(name='client'))
+        Role.objects.create(profile=profile, organization=organization,
+                            group=Group.objects.get(name='client'))
         profile.user.groups.add(Group.objects.get(name='client'))
 
     if permissions.count('student'):
-        Role.objects.create(profile=profile, organization=organization, group=Group.objects.get(name='student'))
+        Role.objects.create(profile=profile, organization=organization,
+                            group=Group.objects.get(name='student'))
         profile.user.groups.add(Group.objects.get(name='student'))
-     
-    messages.success(request, _('User created successfully. An email will be sent to the user with instructions on how to finish the registration process.'))
+
+    messages.success(request, _(
+        'User created successfully. An email will be sent to the user with instructions on how to finish the registration process.'))
 
     return HttpResponseRedirect('/user/%s/' % profile.person.id)
+
 
 @permission_required_with_403('users.users_write')
 def update_user(request, object_id):
     organization = request.user.get_profile().org_active
-    profile = Profile.objects.get(person = object_id, person__organization=request.user.get_profile().org_active)
+    profile = Profile.objects.get(
+        person=object_id, person__organization=request.user.get_profile().org_active)
     permissions = request.POST.getlist('perms')
 
     # groups - clear all permissions and re-create them
@@ -161,26 +190,31 @@ def update_user(request, object_id):
     Role.objects.filter(organization=organization, profile=profile).delete()
 
     if permissions.count('administrator'):
-        Role.objects.create(profile=profile, organization=organization, group=Group.objects.get(name='administrator'))
+        Role.objects.create(profile=profile, organization=organization,
+                            group=Group.objects.get(name='administrator'))
         profile.user.groups.add(Group.objects.get(name='administrator'))
 
     if permissions.count('professional'):
-        Role.objects.create(profile=profile, organization=organization, group=Group.objects.get(name='professional'))
+        Role.objects.create(profile=profile, organization=organization,
+                            group=Group.objects.get(name='professional'))
         profile.user.groups.add(Group.objects.get(name='professional'))
 
     if permissions.count('secretary'):
-        Role.objects.create(profile=profile, organization=organization, group=Group.objects.get(name='secretary'))
+        Role.objects.create(profile=profile, organization=organization,
+                            group=Group.objects.get(name='secretary'))
         profile.user.groups.add(Group.objects.get(name='secretary'))
 
     if permissions.count('client'):
-        Role.objects.create(profile=profile, organization=organization, group=Group.objects.get(name='client'))
+        Role.objects.create(profile=profile, organization=organization,
+                            group=Group.objects.get(name='client'))
         profile.user.groups.add(Group.objects.get(name='client'))
 
     if permissions.count('student'):
-        Role.objects.create(profile=profile, organization=organization, group=Group.objects.get(name='student'))
+        Role.objects.create(profile=profile, organization=organization,
+                            group=Group.objects.get(name='student'))
         profile.user.groups.add(Group.objects.get(name='student'))
 
-    profile.user.save(force_update = True)
+    profile.user.save(force_update=True)
 
     messages.success(request, _('User updated successfully'))
 
@@ -197,15 +231,18 @@ def update_pwd(request, obj=False):
     if not request.POST.get('password_mini') or not request.POST.get('password_mini_conf'):
         messages.error(request, _('All fields are required'))
         return HttpResponseRedirect('/user/%s/' % obj)
-        
+
     # check match fields
     if request.POST.get('password_mini') != request.POST.get('password_mini_conf'):
-        messages.error(request, _('Password confirmation does not match. Please try again'))
+        messages.error(request, _(
+            'Password confirmation does not match. Please try again'))
         return HttpResponseRedirect('/user/%s/' % obj)
 
-    user = Profile.objects.get(person = obj, person__organization=request.user.get_profile().org_active).user
+    user = Profile.objects.get(
+        person=obj, person__organization=request.user.get_profile().org_active).user
     user.set_password(request.POST.get('password_mini'))
-    user.profile.temp = request.POST.get('password_mini')    # temporary field (LDAP)
+    user.profile.temp = request.POST.get(
+        'password_mini')    # temporary field (LDAP)
     user.profile.save()
     user.save(force_update=True)
 
@@ -215,17 +252,20 @@ def update_pwd(request, obj=False):
 
 @permission_required_with_403('users.users_write')
 def set_form_user(request, object_id=0):
-    array = {} #json
-    
-    person = get_object_or_404(Person, pk = object_id, organization=request.user.get_profile().org_active)
+    array = {}  # json
+
+    person = get_object_or_404(
+        Person, pk=object_id, organization=request.user.get_profile().org_active)
     array[0] = slugify(person.name)
     array[1] = u'%s' % person.get_first_email()
-    
+
     return HttpResponse(simplejson.dumps(array), mimetype='application/json')
 
+
 @permission_required_with_403('users.users_write')
-def order(request, profile_id = None):
-    object = Profile.objects.get(pk = profile_id, person__organization=request.user.get_profile().org_active)
+def order(request, profile_id=None):
+    object = Profile.objects.get(
+        pk=profile_id, person__organization=request.user.get_profile().org_active)
     if request.user.get_profile() == object:
         messages.error(request, _('Sorry, you can not disable yourself'))
     else:
@@ -238,8 +278,9 @@ def order(request, profile_id = None):
                 i.save()
 
         object.user.save(force_update=True)
-        messages.success(request, ('%s' % (_('User activated successfully') if object.user.is_active else _('User deactivated successfully'))))
-    
+        messages.success(request, ('%s' % (_('User activated successfully')
+                                           if object.user.is_active else _('User deactivated successfully'))))
+
     return HttpResponseRedirect('/user/%s/' % object.person.id)
 
 '''
@@ -263,10 +304,10 @@ def username_is_available(request, user):
        0 = No
        1 = Yes
     """
-    if User.objects.filter(username__iexact = user).count():
-            return HttpResponse("0")
+    if User.objects.filter(username__iexact=user).count():
+        return HttpResponse("0")
     else:
-            return HttpResponse("1")
+        return HttpResponse("1")
 
 
 @permission_required_with_403('users.users_write')
@@ -275,21 +316,22 @@ def update_email(request, obj=False):
     # obj format is required by urls.py
     if not obj:
         return HttpResponseRedirect('/')
-    
+
     if not request.POST.get('email_mini') == request.POST.get('email_mini_conf') \
             or not request.POST.get('email_mini') \
             or not request.POST.get('email_mini_conf'):
 
         messages.error(request, _('Email address do not match'))
-        return HttpResponseRedirect( '/user/%s/' % obj )
-    
-    user = Profile.objects.get( person=obj, person__organization=request.user.get_profile().org_active ).user
-    
-    user.email=request.POST.get('email_mini')
+        return HttpResponseRedirect('/user/%s/' % obj)
+
+    user = Profile.objects.get(
+        person=obj, person__organization=request.user.get_profile().org_active).user
+
+    user.email = request.POST.get('email_mini')
     user.save()
 
     user.profile.temp = request.POST.get('email_mini')
     user.profile.save()
-    
+
     messages.success(request, _('Email updated successfully!'))
     return HttpResponseRedirect('/user/%s/' % obj)

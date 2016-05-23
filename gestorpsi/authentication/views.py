@@ -42,30 +42,31 @@ from registration.models import RegistrationProfile
 # code from http://code.activestate.com/recipes/498217/
 # changed by czd@gestorpsi.com.br
 
+
 def login_check(f):
     @login_required
     def wrap(request, *args, **kwargs):
         return f(request, *args, **kwargs)
-    wrap.__doc__=f.__doc__
-    wrap.__name__=f.__name__
+    wrap.__doc__ = f.__doc__
+    wrap.__name__ = f.__name__
     return wrap
 
 
-#def unblocked_user(username):
+# def unblocked_user(username):
 
-    ## user can't exist
+    # user can't exist
     #user = get_object_or_404(User, username=username)
 
-    #if user.is_staff or user.is_superuser:
-        #return True
-    
+    # if user.is_staff or user.is_superuser:
+    # return True
+
     #profile = user.get_profile()
     #value = profile.try_login
 
-    #if (value >= settings.PASSWORD_RETIRES):            
-        #return False
-    
-    #return True
+    # if (value >= settings.PASSWORD_RETIRES):
+    # return False
+
+    # return True
 
 
 def user_authentication(request):
@@ -74,19 +75,20 @@ def user_authentication(request):
         return render_to_response('core/site_disabled.html')
 
     if not request.method == "POST":
-        return render_to_response('registration/login.html', {'form': AuthenticationForm() })
+        return render_to_response('registration/login.html', {'form': AuthenticationForm()})
 
     form = AuthenticationForm(data=request.POST)
-    username = request.POST.get('username').strip().lower() # convert to lower string
+    username = request.POST.get('username').strip(
+    ).lower()  # convert to lower string
     password = request.POST.get('password')
-    
+
     user = authenticate(username=username, password=password)
 
     # user does not exist
     if user is None:
         set_trylogin(username)
         form_messages = _('Invalid username or password')
-        return render_to_response('registration/login.html', {'form': form, 'form_messages': form_messages })
+        return render_to_response('registration/login.html', {'form': form, 'form_messages': form_messages})
     else:
         request.session['user_aux_id'] = user.id
 
@@ -97,18 +99,21 @@ def user_authentication(request):
 
     # user has not confirmed registration yet
     if user.registrationprofile_set.all()[0].activation_key != 'ALREADY_ACTIVATED':
-        form_messages = _('Your account has not been confirmated yet. Please check your email and use your activation code to continue')
-        return render_to_response('registration/login.html', {'form':form, 'form_messages': form_messages })
-    
+        form_messages = _(
+            'Your account has not been confirmated yet. Please check your email and use your activation code to continue')
+        return render_to_response('registration/login.html', {'form': form, 'form_messages': form_messages})
+
     if not user.is_active:
-        form_messages = _('Your account has been disable. Please contact our support')
-        return render_to_response('registration/login.html', {'form':form, 'form_messages': form_messages })
+        form_messages = _(
+            'Your account has been disable. Please contact our support')
+        return render_to_response('registration/login.html', {'form': form, 'form_messages': form_messages})
     else:
         clear_login(user)
         profile = user.get_profile()
         if profile.organization.distinct().count() > 1:
             try:
-                organization = profile.organization.get(short_name__iexact = request.POST.get('shortname'))
+                organization = profile.organization.get(
+                    short_name__iexact=request.POST.get('shortname'))
                 profile.org_active = organization
                 profile.save()
                 user.groups.clear()
@@ -118,17 +123,16 @@ def user_authentication(request):
                 return HttpResponseRedirect('/')
             except Organization.DoesNotExist:
                 request.session['temp_user'] = user
-                return render_to_response('registration/select_organization.html', { 'objects': profile.organization.distinct() })
+                return render_to_response('registration/select_organization.html', {'objects': profile.organization.distinct()})
         login(request, user)
         return HttpResponseRedirect(request.POST.get('next') or '/')
 
 
-
-
 def user_organization(request):
-    organization = Organization.objects.get(pk=request.POST.get('organization'))
+    organization = Organization.objects.get(
+        pk=request.POST.get('organization'))
     user = request.session['temp_user']
-    del request.session['temp_user']        
+    del request.session['temp_user']
     user.get_profile().org_active = organization
     user.get_profile().save()
 
@@ -137,9 +141,8 @@ def user_organization(request):
     for role in user.get_profile().role_set.filter(organization=organization):
         user.groups.add(role.group)
 
-    login(request, user)           
+    login(request, user)
     return HttpResponseRedirect('/')
-
 
 
 """
@@ -181,31 +184,28 @@ def old_user_organization(request):
 """
 
 
-def set_trylogin(user):     
+def set_trylogin(user):
     filtered_user = User.objects.filter(username=user)
-    if(len(filtered_user)):        
-        found_user = filtered_user[0]    
+    if(len(filtered_user)):
+        found_user = filtered_user[0]
         old_number = found_user.get_profile().try_login
         old_number += 1
         found_user.get_profile().try_login = old_number
         found_user.save()
 
 
-
 def clear_login(user):
     user.get_profile().try_login = 0
     user.save()
-    
 
 
-def change_password(user,current_password, new_password):    
-    if check_password(current_password):   
+def change_password(user, current_password, new_password):
+    if check_password(current_password):
         user.set_password(new_password)
         org = user.get_profile().org_active
         user.get_profile().org_active = None
         user.save()
-        user.get_profile().org_active = org       
-
+        user.get_profile().org_active = org
 
 
 def gestorpsi_login(request, *args, **kwargs):
@@ -214,18 +214,18 @@ def gestorpsi_login(request, *args, **kwargs):
     return django_login(request, *args, **kwargs)
 
 
-
 '''
     from django-registration
     organization form registration, new org.
 '''
 
+
 def register(request, success_url=None,
              form_class=RegistrationForm,
              template_name='registration/registration_form.html',
              extra_context=None):
-    
-    if request.method == 'POST': #the full process of registration is done here
+
+    if request.method == 'POST':  # the full process of registration is done here
 
         form = form_class(data=request.POST)
 
@@ -233,8 +233,9 @@ def register(request, success_url=None,
         form.fields['city'].initial = request.POST.get('city')
         form.fields['state'].initial = request.POST.get('state')
 
-        if Organization.objects.filter(short_name__iexact = slugify(request.POST.get('shortname'))):
-            error_msg = _(u"Informed organization is already registered. Please choose another name here or login with an existing account")
+        if Organization.objects.filter(short_name__iexact=slugify(request.POST.get('shortname'))):
+            error_msg = _(
+                u"Informed organization is already registered. Please choose another name here or login with an existing account")
             form.errors["organization"] = ErrorList([error_msg])
 
         elif request.POST.get('username') != slugify(request.POST.get('username')):
@@ -245,18 +246,22 @@ def register(request, success_url=None,
             if form.is_valid():
                 form.save(request)
 
-                user = User.objects.get(username__iexact=form.cleaned_data['username'])
+                user = User.objects.get(
+                    username__iexact=form.cleaned_data['username'])
                 profile = user.get_profile()
                 person = profile.person
 
                 # active automatic
-                org = Organization.objects.filter(organization__isnull=True).filter(person=person)[0]
+                org = Organization.objects.filter(
+                    organization__isnull=True).filter(person=person)[0]
                 org.active = True
                 org.save()
                 for p in org.person_set.all():
                     for rp in p.profile.user.registrationprofile_set.all():
-                        activation_key = rp.activation_key.lower() # Normalize before trying anything with it.
-                        RegistrationProfile.objects.activate_user(activation_key)
+                        # Normalize before trying anything with it.
+                        activation_key = rp.activation_key.lower()
+                        RegistrationProfile.objects.activate_user(
+                            activation_key)
 
                 prof = ProfessionalResponsible()
                 prof.organization = org
@@ -269,7 +274,7 @@ def register(request, success_url=None,
                 i.organization = org
                 i.status = 2
                 i.save()
-                
+
                 bcc_list = ADMINS_REGISTRATION
 
                 msg = EmailMessage()
@@ -278,7 +283,7 @@ def register(request, success_url=None,
                 msg.body += u'Organização %s' % org
                 msg.to = bcc_list
                 msg.send()
-                
+
                 request.session['user_aux_id'] = user.id
 
                 # message for client
@@ -296,50 +301,52 @@ def register(request, success_url=None,
                 msg.body += u"link contato: %s/contato/\n\n" % URL_HOME
                 msg.body += u"Instruções no YouTube: https://www.youtube.com/channel/UC03EiqIuX72q-fi0MfWK8WA\n\n"
 
-                msg.body += u"O periodo de teste inicia em %s e termina em %s.\n" % ( i.start_date.strftime("%d/%m/%Y"), i.end_date.strftime("%d/%m/%Y") )
+                msg.body += u"O periodo de teste inicia em %s e termina em %s.\n" % (
+                    i.start_date.strftime("%d/%m/%Y"), i.end_date.strftime("%d/%m/%Y"))
                 msg.body += u"Antes do término do período de teste você deve optar por uma forma de pagamento aqui: %s/organization/signature/\n\n" % URL_APP
 
                 msg.body += u"IMPORTANTE: As informações inseridas no sistema podem ser editadas mas não apagadas. Por isso, se for necessário fazer testes com informações fictícias para entender como o sistema funciona, utilize a nossa versão de demonstração: http://demo.gestorpsi.com.br\n\n"
 
                 msg.body += u"Endereço do GestorPSI: %s\n" % URL_APP
-                msg.body += u"Usuário/Login  %s\n" % request.POST.get('username')
+                msg.body += u"Usuário/Login  %s\n" % request.POST.get(
+                    'username')
                 msg.body += u"Senha  %s\n\n" % request.POST.get('password1')
 
                 msg.body += u"%s" % SIGNATURE
 
-                msg.to = [ user.email, ]
-                msg.bcc =  bcc_list
+                msg.to = [user.email, ]
+                msg.bcc = bcc_list
                 msg.send()
-                
+
                 return HttpResponseRedirect(success_url or reverse('registration-complete'))
     else:
         form = form_class()
-    
+
     if extra_context is None:
         extra_context = {}
     context = RequestContext(request)
     for key, value in extra_context.items():
         context[key] = callable(value) and value() or value
     return render_to_response(
-                template_name,
-                { 'form': form },
-                context_instance=RequestContext(request)
-            )
-
-
+        template_name,
+        {'form': form},
+        context_instance=RequestContext(request)
+    )
 
 
 '''
     registration complete. New org
 '''
+
+
 def complete(request, success_url=None, extra_context=None):
 
     from gestorpsi.settings import URL_APP, URL_HOME
 
     return render_to_response('registration/registration_complete.html',
-                                locals(),
-                                context_instance=RequestContext(request)
-                            )
+                              locals(),
+                              context_instance=RequestContext(request)
+                              )
 
     '''
     from gestorpsi.boleto.functions import gera_boleto_bradesco_inscricao

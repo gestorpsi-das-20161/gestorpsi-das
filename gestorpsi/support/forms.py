@@ -17,13 +17,17 @@ GNU General Public License for more details.
 from django import forms
 from gestorpsi.support.models import Ticket
 
+
 class TicketForm(forms.ModelForm):
-    contact_email = forms.CharField(required=True, widget=forms.TextInput(attrs={'class':'extrabig', }))
-    contact_phone = forms.CharField(required=True, widget=forms.TextInput(attrs={'class':'extrabig', }))
-    contact_name = forms.CharField(required=True, widget=forms.TextInput(attrs={'class':'extrabig', }))
-    question = forms.CharField(widget=forms.Textarea(attrs={'class':'extrabig', }), required=True)
-    
+    contact_email = forms.CharField(
+        required=True, widget=forms.TextInput(attrs={'class': 'extrabig', }))
+    contact_phone = forms.CharField(
+        required=True, widget=forms.TextInput(attrs={'class': 'extrabig', }))
+    contact_name = forms.CharField(
+        required=True, widget=forms.TextInput(attrs={'class': 'extrabig', }))
+    question = forms.CharField(widget=forms.Textarea(
+        attrs={'class': 'extrabig', }), required=True)
+
     class Meta:
         fields = ('contact_email', 'contact_phone', 'contact_name', 'question')
         model = Ticket
-

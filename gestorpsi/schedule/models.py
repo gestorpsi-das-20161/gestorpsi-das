@@ -36,6 +36,7 @@ OCCURRENCE_CONFIRMATION_PRESENCE = (
 
 
 class ScheduleOccurrenceManager(models.Manager):
+
     def confirmed(self):
         return super(ScheduleOccurrenceManager, self).get_query_set().filter(
             start_time__lt=datetime.now(),

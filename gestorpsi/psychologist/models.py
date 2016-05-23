@@ -18,23 +18,23 @@ from django.db import models
 #from gestorpsi.careprofessional.models import CareProfessional
 from gestorpsi.util.uuid_field import UuidField
 
-#class Approaches(models.Model):
+# class Approaches(models.Model):
 #    """
 #    Represents the necessary approaches (theoric reference) for psychologist
 #    @author: Danilo S. Sanches
-#    @version: 1.0  
-#    """    
+#    @version: 1.0
+#    """
 #    description = models.CharField(max_length=50)
 #    def __unicode__(self):
 #        return u"%s" % self.description
 #    class Meta:
 #        ordering = ['description']
 
-#class Area(models.Model):
+# class Area(models.Model):
 #    """
 #    Represents psychologist's specialist area
 #    @author: Danilo S. Sanches
-#    @version: 1.0 
+#    @version: 1.0
 #    """
 #    description = models.CharField(max_length=30)
 #    def __unicode__(self):
@@ -42,11 +42,11 @@ from gestorpsi.util.uuid_field import UuidField
 #    class Meta:
 #        ordering = ['description']
 
-#class AgeGroup(models.Model):
+# class AgeGroup(models.Model):
 #    """
 #    This class represents the AgeGroup that psychologist works
 #    @author: Danilo S. Sanches
-#    @version: 1.0  
+#    @version: 1.0
 #    """
 #    description = models.CharField(max_length=30)
 #    def __unicode__(self):
@@ -54,9 +54,9 @@ from gestorpsi.util.uuid_field import UuidField
 #    class Meta:
 #        ordering = ['description']
 
-#class Psychologist(CareProfessional):
+# class Psychologist(CareProfessional):
 #     """
-#     This class represents a psychologist model. This  model needs some fields from CareProfessional and for this, an inherit from CareProfessional was used.        
+#     This class represents a psychologist model. This  model needs some fields from CareProfessional and for this, an inherit from CareProfessional was used.
 #     @author: Danilo S. Sanches
 #     @version: 1.0
 #     @see: CareProfessional

@@ -24,7 +24,8 @@ GNU General Public License for more details.
 from django.contrib import admin
 from gestorpsi.authentication.models import Profile
 
+
 class ProfileAdmin(admin.ModelAdmin):
     pass
 
-admin.site.register(Profile, ProfileAdmin)    
+admin.site.register(Profile, ProfileAdmin)

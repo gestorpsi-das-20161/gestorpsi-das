@@ -24,8 +24,10 @@ GNU General Public License for more details.
 from django.contrib import admin
 from gestorpsi.document.models import TypeDocument, Issuer
 
+
 class IssuerAdmin(admin.ModelAdmin):
     pass
+
 
 class TypeDocumentAdmin(admin.ModelAdmin):
     pass

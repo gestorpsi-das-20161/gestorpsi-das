@@ -32,17 +32,18 @@ from gestorpsi.gcm.forms.invoice import InvoiceForm
 
 
 class PlanAdmin(admin.ModelAdmin):
-    list_display = ('name', 'value','duration','staff_size','active')
+    list_display = ('name', 'value', 'duration', 'staff_size', 'active')
     list_filter = ('active',)
     pass
 admin.site.register(Plan, PlanAdmin)
-
 
 
 '''
     filter and action invoice
 '''
 # pendente
+
+
 def pendente(modeladmin, request, queryset):
     for obj in queryset:
         obj.date_payed = None
@@ -51,6 +52,8 @@ def pendente(modeladmin, request, queryset):
 pendente.short_description = u"Pendente"
 
 # pago pelo cliente - cartao
+
+
 def pagoClienteCartao(modeladmin, request, queryset):
     for obj in queryset:
         obj.date_payed = datetime.today()
@@ -60,6 +63,8 @@ def pagoClienteCartao(modeladmin, request, queryset):
 pagoClienteCartao.short_description = u"Pago pelo cliente / PagSeguro cartão crédito"
 
 # pago pelo cliente - boleto
+
+
 def pagoClienteBoleto(modeladmin, request, queryset):
     for obj in queryset:
         obj.date_payed = datetime.today()
@@ -69,6 +74,8 @@ def pagoClienteBoleto(modeladmin, request, queryset):
 pagoClienteBoleto.short_description = u"Pago pelo cliente / PagSeguro boleto"
 
 # pago pelo cliente - boleto
+
+
 def pagoClienteDeposito(modeladmin, request, queryset):
     for obj in queryset:
         obj.date_payed = datetime.today()
@@ -88,17 +95,20 @@ pagoGratis.short_description = u"Pago / Grátis"
 
 
 class InvoiceAdmin(admin.ModelAdmin):
-    list_display = ('organization','plan','start_date','end_date','status','date_payed','bank','situation_')
+    list_display = ('organization', 'plan', 'start_date',
+                    'end_date', 'status', 'date_payed', 'bank', 'situation_')
     list_filter = ('status',)
-    actions = [pendente, pagoClienteCartao, pagoClienteBoleto, pagoClienteDeposito, pagoGratis]
-    search_fields = ['organization__name','organization__id']
+    actions = [pendente, pagoClienteCartao,
+               pagoClienteBoleto, pagoClienteDeposito, pagoGratis]
+    search_fields = ['organization__name', 'organization__id']
     form = InvoiceForm
 
     class Media:
-        js = ('/media/js/jquery-1.6.4.min.js','/media/js/invoiceAdd.js')
+        js = ('/media/js/jquery-1.6.4.min.js', '/media/js/invoiceAdd.js')
 
 
 admin.site.register(Invoice, InvoiceAdmin)
+
 
 class PaymentTypeAdmin(admin.ModelAdmin):
     pass

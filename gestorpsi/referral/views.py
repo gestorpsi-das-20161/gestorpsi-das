@@ -29,21 +29,26 @@ from gestorpsi.referral.models import Referral, Queue, ReferralExternal, Referra
 from gestorpsi.util.decorators import permission_required_with_403
 from gestorpsi.financial.models import Receive
 
+
 @permission_required_with_403('referral.referral_list')
 def referral_off(request, object_id=None):
-    object = get_object_or_404(Referral, pk=object_id, service__organization=request.user.get_profile().org_active)
+    object = get_object_or_404(
+        Referral, pk=object_id, service__organization=request.user.get_profile().org_active)
     referral.status = '02'
-    referral.save(force_update = True)
+    referral.save(force_update=True)
     return HttpResponse(referral.id)
 
-@permission_required_with_403('referral.referral_list')
-def client_referrals(request, object_id = None):
-    object = get_object_or_404(Client, pk=object_id, person__organization=request.user.get_profile().org_active)
-    referral = Referral.objects.charged().filter(client=object, service__organization=request.user.get_profile().org_active)
 
-    array = {} #json
+@permission_required_with_403('referral.referral_list')
+def client_referrals(request, object_id=None):
+    object = get_object_or_404(
+        Client, pk=object_id, person__organization=request.user.get_profile().org_active)
+    referral = Referral.objects.charged().filter(
+        client=object, service__organization=request.user.get_profile().org_active)
+
+    array = {}  # json
     i = 0
-    
+
     for o in referral:
         priority = ("%s" % o.priority).decode('utf-8')
         impact = ("%s" % o.impact).decode('utf-8')
@@ -65,21 +70,24 @@ def client_referrals(request, object_id = None):
         sub_count = 0
         array[i]['professional'] = {}
         for p in o.professional.all():
-            array[i]['professional'][sub_count] = ({'id':p.id, 'name': '%s %s' % (p.person.name, '' if not p.is_student else _(' - Student')),})
+            array[i]['professional'][sub_count] = ({'id': p.id, 'name': '%s %s' % (
+                p.person.name, '' if not p.is_student else _(' - Student')), })
             sub_count = sub_count + 1
-        
+
         i = i + 1
-    
-    array = simplejson.dumps(array, encoding = 'iso8859-1')
-    
+
+    array = simplejson.dumps(array, encoding='iso8859-1')
+
     return HttpResponse(array, mimetype='application/json')
 
 
-def _referral_view(request, object_id = None, referral_id = None, template_name = 'client/client_referral_home.html', access_check_referral_write = None):
+def _referral_view(request, object_id=None, referral_id=None, template_name='client/client_referral_home.html', access_check_referral_write=None):
     clss = request.GET.get("clss")
     user = request.user
-    object = get_object_or_404(Client, pk = object_id, person__organization=request.user.get_profile().org_active)
-    referral = get_object_or_404(Referral, pk=referral_id, service__organization=request.user.get_profile().org_active)
+    object = get_object_or_404(
+        Client, pk=object_id, person__organization=request.user.get_profile().org_active)
+    referral = get_object_or_404(
+        Referral, pk=referral_id, service__organization=request.user.get_profile().org_active)
     organization = user.get_profile().org_active.id
     queues = Queue.objects.filter(referral=referral_id, client=object)
     referrals = ReferralExternal.objects.filter(referral=referral_id)
@@ -88,13 +96,13 @@ def _referral_view(request, object_id = None, referral_id = None, template_name 
     '''
         avoid duplicate payment when is package
     '''
-    tmpp = [] # past
-    tmpu = [] # upcoming
+    tmpp = []  # past
+    tmpu = []  # upcoming
 
-    for x in Receive.objects.filter( Q(occurrence__event__referral=referral) | Q(referral=referral) ).order_by('-occurrence__start_time','-id').distinct():
+    for x in Receive.objects.filter(Q(occurrence__event__referral=referral) | Q(referral=referral)).order_by('-occurrence__start_time', '-id').distinct():
 
         # past
-        if x.get_is_conclude_(): 
+        if x.get_is_conclude_():
             if not x in tmpp:
                 tmpp.append(x)
         # upcoming
@@ -107,20 +115,20 @@ def _referral_view(request, object_id = None, referral_id = None, template_name 
     receive_past_small = tmpp[0:5]
     receive_past_all = tmpp[5:]
 
-
     try:
         discharged = ReferralDischarge.objects.get(referral=referral)
     except:
         pass
 
     try:
-        indication = Indication.objects.get(referral = referral_id)
+        indication = Indication.objects.get(referral=referral_id)
     except:
         indication = None
 
-    attachs = ReferralAttach.objects.filter(referral = referral_id)
+    attachs = ReferralAttach.objects.filter(referral=referral_id)
 
-    # permission to read file, user can be is a professional and/or a psychologist.
+    # permission to read file, user can be is a professional and/or a
+    # psychologist.
     is_professional = user.get_profile().person.is_careprofessional()
     is_psychologist = False
 
@@ -131,12 +139,15 @@ def _referral_view(request, object_id = None, referral_id = None, template_name 
     types = REFERRAL_ATTACH_TYPE
 
     return render_to_response(template_name, locals(), context_instance=RequestContext(request))
-    
+
 
 def _referral_occurrences(request, object_id=None, referral_id=None, type='upcoming', template_name='client/client_referral_occurrences.html'):
 
-    object = get_object_or_404(Client, pk = object_id, person__organization=request.user.get_profile().org_active)
-    referral = get_object_or_404(Referral, pk=referral_id, service__organization=request.user.get_profile().org_active)
-    occurrences = referral.past_occurrences_all() if type=='past' else  referral.upcoming_occurrences()
-    
+    object = get_object_or_404(
+        Client, pk=object_id, person__organization=request.user.get_profile().org_active)
+    referral = get_object_or_404(
+        Referral, pk=referral_id, service__organization=request.user.get_profile().org_active)
+    occurrences = referral.past_occurrences_all(
+    ) if type == 'past' else referral.upcoming_occurrences()
+
     return render_to_response(template_name, locals(), context_instance=RequestContext(request))

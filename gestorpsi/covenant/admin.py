@@ -25,6 +25,7 @@ from django.contrib import admin
 from gestorpsi.covenant.models import Covenant
 from gestorpsi.covenant.forms import CovenantForm
 
+
 class CovenantAdmin(admin.ModelAdmin):
     form = CovenantForm
 admin.site.register(Covenant, CovenantAdmin)

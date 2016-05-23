@@ -22,6 +22,7 @@ from gestorpsi.person.models import Person
 from gestorpsi.place.models import Place
 from gestorpsi.util.uuid_field import UuidField
 
+
 class InstitutionType(models.Model):
     """    
     This class represents an institution type.   
@@ -29,6 +30,7 @@ class InstitutionType(models.Model):
     @version: 1.0 
     """
     description = models.CharField(max_length=50, null=True)
+
     def __unicode__(self):
         return u"%s" % self.description
 
@@ -37,6 +39,7 @@ class InstitutionType(models.Model):
 
 reversion.register(InstitutionType)
 
+
 class PostGraduate(models.Model):
     """    
     An instance of this class represents the postgraduate of careprofessional. This instance is relation on with careprofessional's academic resume      
@@ -44,11 +47,13 @@ class PostGraduate(models.Model):
     @version: 1.0 
     """
     description = models.CharField(max_length=50, null=True)
+
     def __unicode__(self):
         return u"%s" % self.description
 
     class Meta:
         ordering = ['description']
+
 
 class AcademicResume(models.Model):
     """    
@@ -56,7 +61,7 @@ class AcademicResume(models.Model):
     @author: Danilo S. Sanches
     @version: 1.0 
     """
-    id= UuidField( primary_key= True )
+    id = UuidField(primary_key=True)
     teachingInstitute = models.CharField(max_length=100, null=True)
     institutionType = models.OneToOneField(InstitutionType, null=True)
     course = models.CharField(max_length=100, null=True)
@@ -66,12 +71,13 @@ class AcademicResume(models.Model):
     postGraduate = models.ForeignKey(PostGraduate, null=True)
     initialDatePostGraduate = models.DateField(null=True)
     finalDatePostGraduate = models.DateField(null=True)
-    area = models.CharField(max_length=100, null=True)    
+    area = models.CharField(max_length=100, null=True)
 
     def revision(self):
         return reversion.get_for_object(self).order_by('-revision__date_created').latest('revision__date_created').revision
 
 reversion.register(AcademicResume)
+
 
 class Profession(models.Model):
     """    
@@ -83,7 +89,7 @@ class Profession(models.Model):
     symbol  :   Symbol of the class of the professional (CRM, CRP, ...)
     symbolDesc : Description of the symbol
     academic_name : Name of the profession in academic context
-    
+
     @author:Tiago de Souza Moraes
     @version: 1.0 
     """
@@ -92,7 +98,7 @@ class Profession(models.Model):
     symbol = models.CharField(max_length=20, null=True, blank=True)
     symbol_desc = models.CharField(max_length=100, null=True)
     academic_name = models.CharField(max_length=100, null=True, blank=True)
-    
+
     def __unicode__(self):
         return u"%s" % self.type
 
@@ -101,13 +107,14 @@ class Profession(models.Model):
 
 reversion.register(Profession)
 
+
 class ProfessionalProfile(models.Model):
     """
     This class represents the professional profile
     @author: Danilo S. Sanches
     @version: 1.0
     """
-    id= UuidField( primary_key= True )
+    id = UuidField(primary_key=True)
     academicResume = models.OneToOneField(AcademicResume, null=True)
     initialProfessionalActivities = models.CharField(max_length=10, null=True)
     profession = models.OneToOneField(Profession, null=True)
@@ -117,22 +124,24 @@ class ProfessionalProfile(models.Model):
 
     def __unicode__(self):
         try:
-            p  = CareProfessional.objects.get(professionalProfile=self).person.name
+            p = CareProfessional.objects.get(
+                professionalProfile=self).person.name
         except:
             p = _('[no professional related]')
         return u'%s' % p
 
     def __str__(self):
         try:
-            p  = CareProfessional.objects.get(professionalProfile=self).person.name
+            p = CareProfessional.objects.get(
+                professionalProfile=self).person.name
         except:
             p = _('[no professional related]')
         return u'%s' % p
-    
+
     def __area__(self):
         return ''
     area = property(__area__)
-    
+
     def __addressPrefix__(self):
         return ''
     addressPrefix = property(__addressPrefix__)
@@ -142,6 +151,7 @@ class ProfessionalProfile(models.Model):
 
 reversion.register(ProfessionalProfile)
 
+
 class LicenceBoard(models.Model):
     """
     This class represents the careprofessional's licence board
@@ -150,9 +160,10 @@ class LicenceBoard(models.Model):
     """
     name = models.CharField(max_length=20, null=True)
     description = models.CharField(max_length=100, null=True)
-    
+
     def __unicode__(self):
         return self.name
+
 
 class ProfessionalIdentification(models.Model):
     """
@@ -160,20 +171,22 @@ class ProfessionalIdentification(models.Model):
     @author: Danilo S. Sanches
     @version: 1.0
     """
-    id= UuidField( primary_key= True )
+    id = UuidField(primary_key=True)
     profession = models.ForeignKey(Profession, null=True)
     registerNumber = models.CharField(max_length=50, null=True)
-    
+
     def __unicode__(self):
         try:
-            p  = CareProfessional.objects.get(professionalIdentification=self).person.name
+            p = CareProfessional.objects.get(
+                professionalIdentification=self).person.name
         except:
             p = _('[no professional related]')
         return u'%s' % p
-    
+
     def __str__(self):
         try:
-            p  = CareProfessional.objects.get(professionalIdentification=self).person.name
+            p = CareProfessional.objects.get(
+                professionalIdentification=self).person.name
         except:
             p = _('[no professional related]')
         return '%s' % p
@@ -191,56 +204,65 @@ class ProfessionalIdentification(models.Model):
 
 reversion.register(ProfessionalIdentification)
 
+
 class StudentProfile(models.Model):
     """
     This class represents the student profile
     """
-    lecture_class = models.ForeignKey(Profession, null=True, blank=True, verbose_name=_('Lecture Class'))
-    period = models.CharField(_('Student Class Period'), max_length=255, null=True, blank=True)
-    class_duration = models.CharField(_('Student Class Duration'), max_length=255, null=True, blank=True)
-    register_number = models.CharField(_('Student Register Number'), max_length=255, null=True, blank=True)
+    lecture_class = models.ForeignKey(
+        Profession, null=True, blank=True, verbose_name=_('Lecture Class'))
+    period = models.CharField(
+        _('Student Class Period'), max_length=255, null=True, blank=True)
+    class_duration = models.CharField(
+        _('Student Class Duration'), max_length=255, null=True, blank=True)
+    register_number = models.CharField(
+        _('Student Register Number'), max_length=255, null=True, blank=True)
     professional = models.OneToOneField('CareProfessional')
-    
+
     def __unicode__(self):
-        return u'%s' % ( self.professional )
+        return u'%s' % (self.professional)
 
     def revision(self):
         return reversion.get_for_object(self).order_by('-revision__date_created').latest('revision__date_created').revision
 
 reversion.register(StudentProfile)
 
+
 class CareProfessionalManager(models.Manager):
+
     def active(self, organization):
-        return super(CareProfessionalManager, self).get_query_set().filter(active=True, studentprofile__id__isnull=True, person__organization = organization).order_by('person__name')
+        return super(CareProfessionalManager, self).get_query_set().filter(active=True, studentprofile__id__isnull=True, person__organization=organization).order_by('person__name')
 
     def active_all(self, organization):
-        return super(CareProfessionalManager, self).get_query_set().filter(active=True, person__organization = organization).order_by('person__name')
+        return super(CareProfessionalManager, self).get_query_set().filter(active=True, person__organization=organization).order_by('person__name')
 
     def deactive(self, organization):
-        return super(CareProfessionalManager, self).get_query_set().filter(active=False, studentprofile__id__isnull=True, person__organization = organization).order_by('person__name')
+        return super(CareProfessionalManager, self).get_query_set().filter(active=False, studentprofile__id__isnull=True, person__organization=organization).order_by('person__name')
 
     def students_active(self, organization):
-        return super(CareProfessionalManager, self).get_query_set().filter(active=True, studentprofile__id__isnull=False, person__organization = organization).order_by('person__name')
+        return super(CareProfessionalManager, self).get_query_set().filter(active=True, studentprofile__id__isnull=False, person__organization=organization).order_by('person__name')
 
     def students_deactive(self, organization):
-        return super(CareProfessionalManager, self).get_query_set().filter(active=False, studentprofile__id__isnull=False, person__organization = organization).order_by('person__name')
+        return super(CareProfessionalManager, self).get_query_set().filter(active=False, studentprofile__id__isnull=False, person__organization=organization).order_by('person__name')
 
     def from_organization(self, organization, query_pk_in=None):
-        
         """
         return clients list from logged organization
         and/or with a pk range filter
         ...
         actually used in report app
         """
-        
-        query = super(CareProfessionalManager, self).get_query_set().filter(person__organization = organization)
+
+        query = super(CareProfessionalManager, self).get_query_set().filter(
+            person__organization=organization)
 
         if query_pk_in:
-            query = query.filter(pk__in=[ i.careprofessional.id for i in query_pk_in])
+            query = query.filter(
+                pk__in=[i.careprofessional.id for i in query_pk_in])
         query = query.order_by('person__name')
 
         return query
+
 
 class CareProfessional(models.Model):
     """
@@ -248,9 +270,10 @@ class CareProfessional(models.Model):
     @author: Danilo S. Sanches
     @version: 1.0
     """
-    id= UuidField( primary_key= True )
-    professionalIdentification = models.OneToOneField(ProfessionalIdentification, null=True)
-    professionalProfile = models.OneToOneField(ProfessionalProfile, null = True)
+    id = UuidField(primary_key=True)
+    professionalIdentification = models.OneToOneField(
+        ProfessionalIdentification, null=True)
+    professionalProfile = models.OneToOneField(ProfessionalProfile, null=True)
     person = models.OneToOneField(Person)
     comments = models.CharField(max_length=200, null=True)
     active = models.BooleanField(default=True)
@@ -276,7 +299,7 @@ class CareProfessional(models.Model):
 
     def revision_created(self):
         return reversion.get_for_object(self).order_by('revision__date_created').latest('revision__date_created').revision
-    
+
     def is_busy(self, start_time, end_time):
         ''' 
         check if professional is busy in schedule for selected range
@@ -294,9 +317,9 @@ class CareProfessional(models.Model):
             .exclude(occurrenceconfirmation__presence=4).exclude(occurrenceconfirmation__presence=5)
 
         return True if \
-            queryset.filter(start_time__lte = start_time, end_time__gt = start_time) or \
-            queryset.filter(start_time__lt = end_time, end_time__gte = end_time) or \
-            queryset.filter(start_time__gte = start_time, end_time__lte = end_time) \
+            queryset.filter(start_time__lte=start_time, end_time__gt=start_time) or \
+            queryset.filter(start_time__lt=end_time, end_time__gte=end_time) or \
+            queryset.filter(start_time__gte=start_time, end_time__lte=end_time) \
             else False
 
     def _url_form(self):
@@ -306,7 +329,7 @@ class CareProfessional(models.Model):
     url_form = property(_url_form)
 
     is_student = property(_is_student)
-    
+
     def referrals_charged(self):
         return self.referral_set.filter(referraldischarge__isnull=True)
 
@@ -323,5 +346,3 @@ class CareProfessional(models.Model):
         return a
 
 reversion.register(CareProfessional)
-
-

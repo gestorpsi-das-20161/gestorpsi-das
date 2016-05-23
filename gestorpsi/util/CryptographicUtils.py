@@ -18,7 +18,8 @@ import binascii
 from Crypto.Cipher import Blowfish
 from django.conf import settings
 
-enc_obj= enc_obj= Blowfish.new(settings.SECRET_KEY)
+enc_obj = enc_obj = Blowfish.new(settings.SECRET_KEY)
+
 
 def decrypt_attrib(attrib):
     """
@@ -27,8 +28,9 @@ def decrypt_attrib(attrib):
     @param attrib: the value to be deciphered
     @author: Vinicius H. S. Durelli
     """
-    return u'%s' % ( enc_obj.decrypt(binascii.a2b_hex(attrib))).rstrip().decode("utf-8")
-    
+    return u'%s' % (enc_obj.decrypt(binascii.a2b_hex(attrib))).rstrip().decode("utf-8")
+
+
 def encrypt_attrib(attrib):
     """
     This helper function I{encrypts} the value passed as parameter and returns the
@@ -37,7 +39,7 @@ def encrypt_attrib(attrib):
     @param attrib: the value to be encrypted
     @author: Vinicius H. S. Durelli
     """
-    repeat= 8 - (len(attrib.encode("utf-8")) % 8)
-    attrib= attrib + " " * repeat
-    attrib= binascii.b2a_hex( enc_obj.encrypt(attrib.encode("utf-8")))
+    repeat = 8 - (len(attrib.encode("utf-8")) % 8)
+    attrib = attrib + " " * repeat
+    attrib = binascii.b2a_hex(enc_obj.encrypt(attrib.encode("utf-8")))
     return attrib

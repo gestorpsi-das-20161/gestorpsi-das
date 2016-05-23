@@ -19,29 +19,38 @@ from reportlab.lib.enums import TA_CENTER
 from geraldo import ReportBand, BAND_WIDTH
 from geraldo import SystemField
 
+
 def footer_gen(organization):
     try:
         end = organization.address.all()[0]
         #line1 = "%s %s, %s - %s - %s - %s - %s" % (end.addressPrefix, end.addressLine1, end.addressNumber, end.addressLine2, end.neighborhood, first_capitalized(end.city.name), end.city.state.shortName)
-        line1 = "%s %s, %s" % (end.addressPrefix, end.addressLine1, end.addressNumber)
+        line1 = "%s %s, %s" % (
+            end.addressPrefix, end.addressLine1, end.addressNumber)
         if len(end.addressLine2):
             line1 += " - %s" % end.addressLine2
         if len(end.neighborhood):
             line1 += " - %s" % end.neighborhood
-        line1 += " - %s - %s" % (first_capitalized(end.city.name), end.city.state.shortName)
-        line2 = "%s | %s | %s" % (organization.phones.all()[0], organization.sites.all()[0], organization.emails.all()[0])
-        line3 = "CNPJ: %s | CNES: %s" % (organization.register_number, organization.cnes)
+        line1 += " - %s - %s" % (first_capitalized(end.city.name),
+                                 end.city.state.shortName)
+        line2 = "%s | %s | %s" % (organization.phones.all()[0], organization.sites.all()[
+                                  0], organization.emails.all()[0])
+        line3 = "CNPJ: %s | CNES: %s" % (
+            organization.register_number, organization.cnes)
+
         class Footer(ReportBand):
-            height = 0.5*cm
+            height = 0.5 * cm
             borders = {'top': True}
-            default_style = {'fontName': 'Helvetica', 'fontSize': 8, 'alignment': TA_CENTER}
+            default_style = {'fontName': 'Helvetica',
+                             'fontSize': 8, 'alignment': TA_CENTER}
             elements = [
-                SystemField(expression=u'%s' % line1, top=0.1*cm, width=BAND_WIDTH),
-                SystemField(expression=u'%s' % line2, top=0.4*cm, width=BAND_WIDTH),
-                SystemField(expression=u'%s' % line3, top=0.7*cm, width=BAND_WIDTH), ]
+                SystemField(expression=u'%s' %
+                            line1, top=0.1 * cm, width=BAND_WIDTH),
+                SystemField(expression=u'%s' %
+                            line2, top=0.4 * cm, width=BAND_WIDTH),
+                SystemField(expression=u'%s' % line3, top=0.7 * cm, width=BAND_WIDTH), ]
     except:
         class Footer(ReportBand):
-            height = 0.5*cm
+            height = 0.5 * cm
             borders = {'top': True}
 
     return Footer()

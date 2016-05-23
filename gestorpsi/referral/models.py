@@ -35,20 +35,22 @@ from gestorpsi.covenant.models import Covenant
 
 fs = FileSystemStorage(location='/tmp')
 
+
 class ReferralPriority(models.Model):
     title = models.CharField(max_length=20)
-    
+
     def __unicode__(self):
         return u'%s' % self.title
+
 
 class ReferralImpact(models.Model):
     title = models.CharField(max_length=20)
     description = models.CharField(max_length=765, null=True, blank=True)
-    
+
     def __unicode__(self):
         return u'%s (%s)' % (self.title, self.description)
 
-QUEUE_PRIORITY= (
+QUEUE_PRIORITY = (
     ('01', _('High')),
     ('02', _('Medium')),
     ('03', _('Low')),
@@ -94,23 +96,28 @@ REFERRAL_DISCHARGE_STATUS = (
     ('7', _('Off')),
 )
 
+
 class ReferralManager(models.Manager):
+
     def charged(self):
         return super(ReferralManager, self).get_query_set().filter(referraldischarge__isnull=True)
 
     def discharged(self):
         return super(ReferralManager, self).get_query_set().filter(referraldischarge__isnull=False)
 
+
 class Queue(models.Model):
     comments = models.TextField(_('comments'), blank=True)
     date_in = models.DateTimeField(_('Data In'), auto_now_add=True)
     date_out = models.DateTimeField(_('Data Out'), null=True, blank=True)
-    priority = models.CharField(_('Priority'), max_length=2, blank=True, choices=QUEUE_PRIORITY, default='03') 
+    priority = models.CharField(
+        _('Priority'), max_length=2, blank=True, choices=QUEUE_PRIORITY, default='03')
     client = models.ForeignKey(Client)
     referral = models.ForeignKey('Referral')
 
     def __unicode__(self):
         return u'%s' % (self.priority)
+
 
 class ReferralAttach(models.Model):
     id = UuidField(primary_key=True)
@@ -118,44 +125,53 @@ class ReferralAttach(models.Model):
     description = models.TextField(null=True)
     date = models.DateTimeField(auto_now_add=True)
     file = models.CharField(max_length=200)
-    type = models.CharField(max_length=2, blank=True, null=True, choices=REFERRAL_ATTACH_TYPE) 
-    permission = models.CharField(max_length=2, default=1, blank=False, null=False, choices=PERMISSION_ATTACH) 
+    type = models.CharField(max_length=2, blank=True,
+                            null=True, choices=REFERRAL_ATTACH_TYPE)
+    permission = models.CharField(
+        max_length=2, default=1, blank=False, null=False, choices=PERMISSION_ATTACH)
     referral = models.ForeignKey('Referral')
 
     def __unicode__(self):
         return u'%s' % (self.file)
+
 
 class ReferralInRangeManager(models.Manager):
     """
     this manager has been created as a help
     to provide data to use in 'report' app
     """
-    
+
     def all(self, organization, datetime_start=None, datetime_end=None, service=None):
         r = Referral.objects.filter(service__organization=organization, date__gte=datetime_start, date__lt=datetime_end) \
             .exclude(referraldischarge__reason=REFERRAL_DISCHARGE_REASON_CANCELED)
 
         if service:
-            r = r.filter(Q(service__pk=service) | Q(referral__service__pk=service))
+            r = r.filter(Q(service__pk=service) | Q(
+                referral__service__pk=service))
 
         return r
+
 
 class Referral(Event):
     #id = UuidField(primary_key=True)
     seq = models.IntegerField(null=True, blank=True, max_length=5, default=0)
     client = models.ManyToManyField(Client, null=True, blank=True)
-    professional = models.ManyToManyField(CareProfessional, null=True, blank=True)
+    professional = models.ManyToManyField(
+        CareProfessional, null=True, blank=True)
     service = models.ForeignKey(Service, null=True)
-    referral = models.ForeignKey('Referral', null=True, blank=True, related_name='referral_children')
+    referral = models.ForeignKey(
+        'Referral', null=True, blank=True, related_name='referral_children')
     date = models.DateTimeField(auto_now_add=True)
     referral_reason = models.CharField(max_length=765, null=True, blank=True)
     annotation = models.CharField(max_length=765, null=True, blank=True)
     available_time = models.CharField(max_length=765, null=True, blank=True)
     priority = models.ForeignKey(ReferralPriority, null=True)
     impact = models.ForeignKey(ReferralImpact, null=True)
-    organization = models.ForeignKey(Organization, null= True, blank= True)
-    status = models.CharField(max_length=2, blank=True, null=True, choices=REFERRAL_STATUS)
-    covenant = models.ManyToManyField(Covenant, null=True, blank=True) # selected covenant available for service
+    organization = models.ForeignKey(Organization, null=True, blank=True)
+    status = models.CharField(max_length=2, blank=True,
+                              null=True, choices=REFERRAL_STATUS)
+    # selected covenant available for service
+    covenant = models.ManyToManyField(Covenant, null=True, blank=True)
     objects = ReferralManager()
     objects_inrange = ReferralInRangeManager()
 
@@ -164,17 +180,20 @@ class Referral(Event):
 
     def __init__(self, *args, **kwargs):
         super(Referral, self).__init__(*args, **kwargs)
-        try: self.event_type = EventType.objects.all()[0]
-        except: self.event_type = EventType.objects.create(abbr='')
-    
+        try:
+            self.event_type = EventType.objects.all()[0]
+        except:
+            self.event_type = EventType.objects.create(abbr='')
+
     def save(self, *args, **kwargs):
         is_new = True if not self.id else False
         super(Referral, self).save(*args, **kwargs)
 
         if is_new:
-            self.seq = int(Referral.objects.filter(organization=self.organization).latest('seq').seq)+1
+            self.seq = int(Referral.objects.filter(
+                organization=self.organization).latest('seq').seq) + 1
             self.save()
-    
+
     def created_revision(self):
         return self.revision_created().date_created
 
@@ -182,23 +201,24 @@ class Referral(Event):
         return self.date
     created = property(_created)
 
-    def add_occurrences(self, start_time, end_time, room, device, annotation, is_online, disable_check_busy = False, **rrule_params):
+    def add_occurrences(self, start_time, end_time, room, device, annotation, is_online, disable_check_busy=False, **rrule_params):
         rrule_params.setdefault('freq', rrule.DAILY)
         error_list = []
         group = None
         if 'count' not in rrule_params and 'until' not in rrule_params:
             #adding_to_existing_group = False
-            #try: # this try function is used to book a group. verify if the occurrence inserted is part from the same group
+            # try: # this try function is used to book a group. verify if the occurrence inserted is part from the same group
                 #occurrence = ScheduleOccurrence.objects.filter(start_time=ev, end_time=ev + delta, room=Room.objects.get(pk=room))[0]
-                #if occurrence.scheduleoccurrence.event.referral.group and occurrence.scheduleoccurrence.event.referral.group == self.group:
+                # if occurrence.scheduleoccurrence.event.referral.group and occurrence.scheduleoccurrence.event.referral.group == self.group:
                     #adding_to_existing_group = True
-            #except:
+            # except:
                 #adding_to_existing_group = False
 
             is_busy = self.check_busy(start_time, end_time, room)
-            #if not is_busy or adding_to_existing_group:
+            # if not is_busy or adding_to_existing_group:
             if not is_busy or disable_check_busy:
-                o = ScheduleOccurrence.objects.create(event=self, start_time=start_time, end_time=end_time, room_id=room, annotation=annotation)
+                o = ScheduleOccurrence.objects.create(
+                    event=self, start_time=start_time, end_time=end_time, room_id=room, annotation=annotation)
                 o.device = device
                 o.is_online = is_online
                 o.save()
@@ -208,23 +228,24 @@ class Referral(Event):
             delta = end_time - start_time
             for ev in rrule.rrule(dtstart=start_time, **rrule_params):
                 #adding_to_existing_group = False
-                #try: # this try function is used to book a group. verify if the occurrence inserted is part from the same group
+                # try: # this try function is used to book a group. verify if the occurrence inserted is part from the same group
                     #occurrence = ScheduleOccurrence.objects.filter(start_time=ev, end_time=ev + delta, room=Room.objects.get(pk=room))[0]
-                    #if occurrence.scheduleoccurrence.event.referral.group and occurrence.scheduleoccurrence.event.referral.group == self.group:
+                    # if occurrence.scheduleoccurrence.event.referral.group and occurrence.scheduleoccurrence.event.referral.group == self.group:
                         #adding_to_existing_group = True
-                #except:
+                # except:
                     #adding_to_existing_group = False
-                
+
                 is_busy = self.check_busy(ev, (ev + delta), room)
-                #if not is_busy or adding_to_existing_group:
+                # if not is_busy or adding_to_existing_group:
                 if not is_busy or disable_check_busy:
-                    o = ScheduleOccurrence.objects.create(event=self, start_time=ev, end_time=ev + delta, room_id=room, annotation=annotation)
+                    o = ScheduleOccurrence.objects.create(
+                        event=self, start_time=ev, end_time=ev + delta, room_id=room, annotation=annotation)
                     o.device = device
                     o.is_online = is_online
                     o.save()
                 else:
                     error_list.append(is_busy)
-        
+
         return error_list
 
     def check_busy(self, start_time, end_time, room_id):
@@ -236,22 +257,23 @@ class Referral(Event):
 
         for p in self.professional.all():
             if p.is_busy(start_time, end_time):
-                error_message.append(_('Professional %s is busy in this range') % p)
+                error_message.append(
+                    _('Professional %s is busy in this range') % p)
 
         for c in self.client.all():
             if c.is_busy(start_time, end_time):
                 error_message.append(_('Client %s is busy in this range') % c)
-        
+
         if not error_message:
             return None
         else:
             return {
-                'start_time': start_time, 
-                'end_time': end_time, 
-                'room': room, 
-                'group': self.group, 
+                'start_time': start_time,
+                'end_time': end_time,
+                'room': room,
+                'group': self.group,
                 'error_message': error_message,
-                }
+            }
 
     class Meta:
         ordering = ('title', )
@@ -284,10 +306,12 @@ class Referral(Event):
         Return all past occurrences without umarked and re-marked
         '''
         return self.occurrence_set.filter(start_time__lt=datetime.now()
-            ).exclude(scheduleoccurrence__occurrenceconfirmation__presence = 4 # unmarked
-            ).exclude(scheduleoccurrence__occurrenceconfirmation__presence = 5 # re-marked
-            ).exclude( Q(scheduleoccurrence__is_online=True) & Q(end_time__gt=datetime.now())
-            ).reverse()
+                                          # unmarked
+                                          ).exclude(scheduleoccurrence__occurrenceconfirmation__presence=4
+                                                    # re-marked
+                                                    ).exclude(scheduleoccurrence__occurrenceconfirmation__presence=5
+                                                              ).exclude(Q(scheduleoccurrence__is_online=True) & Q(end_time__gt=datetime.now())
+                                                                        ).reverse()
 
     def past_occurrences_all(self):
         '''
@@ -330,22 +354,25 @@ class Referral(Event):
         a = []
         for p in self.professional.all():
             if(hasattr(p.professionalIdentification, "profession") and p.professionalIdentification.profession):
-                a.append(u'%s (%s)' % (p, p.professionalIdentification.profession))
+                a.append(u'%s (%s)' %
+                         (p, p.professionalIdentification.profession))
             else:
                 a.append(u'%s' % (p))
         return a
 
     def upcoming_occurrences(self):
         return self.occurrence_set.filter(start_time__gte=datetime.now()
-            ).exclude(scheduleoccurrence__occurrenceconfirmation__presence = 4 # unmarked
-            ).exclude(scheduleoccurrence__occurrenceconfirmation__presence = 5) # re-marked
+                                          # unmarked
+                                          ).exclude(scheduleoccurrence__occurrenceconfirmation__presence=4
+                                                    ).exclude(scheduleoccurrence__occurrenceconfirmation__presence=5)  # re-marked
 
     def upcoming_nopayment_occurrences_(self):
         # today from 00:00
         d = datetime.today().replace(hour=0, minute=0, second=0, microsecond=0)
         return self.occurrence_set.filter(start_time__gte=d, receive__isnull=True
-            ).exclude(scheduleoccurrence__occurrenceconfirmation__presence = 4 # unmarked
-            ).exclude(scheduleoccurrence__occurrenceconfirmation__presence = 5) # re-marked
+                                          # unmarked
+                                          ).exclude(scheduleoccurrence__occurrenceconfirmation__presence=4
+                                                    ).exclude(scheduleoccurrence__occurrenceconfirmation__presence=5)  # re-marked
 
     def occurrences(self):
         return ScheduleOccurrence.objects.filter(event__referral=self)
@@ -355,16 +382,16 @@ class Referral(Event):
 
     def _group(self):
         from gestorpsi.service.models import GroupMembers
-        if not hasattr(self.service,'is_group') or not self.service.is_group:
+        if not hasattr(self.service, 'is_group') or not self.service.is_group:
             return None
         else:
             if GroupMembers.objects.filter(referral=self):
                 g = GroupMembers.objects.filter(referral=self)[0]
                 return g.group if g else None
         return None
-    
+
     group = property(_group)
-    
+
     def occurrences_without_session(self):
         return self.occurrences().exclude(session__isnull=False).order_by('-start_time')
 
@@ -374,49 +401,58 @@ class Referral(Event):
     def occurrences_without_diagnosis(self):
         return self.occurrences().exclude(diagnosis__isnull=False).order_by('-start_time')
 
+
 class ReferralDischarge(models.Model):
     id = UuidField(primary_key=True)
     referral = models.ForeignKey(Referral, null=False, blank=False)
     client = models.ForeignKey(Client, null=True, blank=True)
     date = models.DateTimeField(auto_now_add=True)
-    was_discussed_with_client =  models.BooleanField(_('Was Discussed With Client'), default=False)
+    was_discussed_with_client = models.BooleanField(
+        _('Was Discussed With Client'), default=False)
     #reason = models.CharField(_('Discharge Reason'), max_length=2, blank=True, null=True, choices=REFERRAL_DISCHARGE_TYPE)
-    reason = models.ForeignKey('ReferralDischargeReason', verbose_name=('Discharge Reason'), blank=True, null=True)
+    reason = models.ForeignKey('ReferralDischargeReason', verbose_name=(
+        'Discharge Reason'), blank=True, null=True)
     details = models.TextField(_('Discharge Details'), blank=True)
-    status = models.CharField(_('Status'), max_length=2, blank=True, null=True, choices=REFERRAL_DISCHARGE_STATUS)
+    status = models.CharField(
+        _('Status'), max_length=2, blank=True, null=True, choices=REFERRAL_DISCHARGE_STATUS)
     description = models.TextField(_('Comments'), blank=True)
-    
+
     def __unicode__(self):
         return u'%s - %s' % (self.client, self.referral.service)
 
     class Meta:
-        ordering = ['-date','client']
+        ordering = ['-date', 'client']
 
 reversion.register(Event)
 reversion.register(ReferralDischarge, follow=['referral'])
 reversion.register(Referral, follow=['event_ptr'])
 
+
 class ReferralDischargeReason(models.Model):
     name = models.CharField(max_length=255)
-    color = models.CharField(_('Color'), max_length=6, null=True, help_text=_('Color in HEX Format. Ex: 662393'))
-    
+    color = models.CharField(_('Color'), max_length=6, null=True, help_text=_(
+        'Color in HEX Format. Ex: 662393'))
+
     def __unicode__(self):
         return u'%s' % self.name
-    
+
     class Meta:
-        ordering = ['name',]
+        ordering = ['name', ]
+
 
 class IndicationChoice(models.Model):
     description = models.CharField(max_length=250)
     nick = models.CharField(max_length=50, blank=True)
     weight = models.IntegerField(blank=True, null=True)
-    color = models.CharField(_('Color'), max_length=6, null=True, help_text=_('Color in HEX Format. Ex: 662393'))
+    color = models.CharField(_('Color'), max_length=6, null=True, help_text=_(
+        'Color in HEX Format. Ex: 662393'))
 
     def __unicode__(self):
         return u"%s" % self.description
 
     class Meta:
         ordering = ['weight']
+
 
 class Indication(models.Model):
     id = UuidField(primary_key=True)
@@ -436,11 +472,14 @@ class Indication(models.Model):
 
 reversion.register(Indication)
 
+
 class ReferralChoice(models.Model):
     description = models.CharField(max_length=250)
     nick = models.CharField(max_length=50)
+
     def __unicode__(self):
         return u"%s" % self.description
+
 
 class ReferralReferral(models.Model):
     id = UuidField(primary_key=True)
@@ -457,13 +496,14 @@ class ReferralReferral(models.Model):
 
 reversion.register(ReferralReferral)
 
+
 class ReferralExternal(models.Model):
     comments = models.TextField(_('comments'), blank=True)
     date = models.DateTimeField(_('Data'), auto_now_add=True)
     referral = models.ForeignKey('Referral')
     organization = models.ForeignKey(Organization, null=True)
     professional = models.ForeignKey(CareProfessional, null=True)
-    
+
     def __unicode__(self):
         if self.professional:
             return u'%s - %s (%s)' % (self.date.strftime('%d/%m/%Y'), self.organization, self.professional)

@@ -26,6 +26,7 @@ from django.template import Context
 from gestorpsi.util.models import Cnae
 from gestorpsi.cbo.models import Occupation
 
+
 def get_object_or_new(klass, *args, **kwargs):
     # bitbucket.org/offline/django-annoying/src/tip/annoying/functions.py
     from django.shortcuts import _get_queryset
@@ -34,6 +35,7 @@ def get_object_or_new(klass, *args, **kwargs):
         return queryset.get(*args, **kwargs)
     except queryset.model.DoesNotExist:
         return klass()
+
 
 def get_object_or_None(klass, *args, **kwargs):
     """ Usage:
@@ -48,6 +50,7 @@ def get_object_or_None(klass, *args, **kwargs):
     except queryset.model.DoesNotExist:
         return None
 
+
 def cnae(request):
     '''
     filter Cnae's return a dict with cnae codes and sub classes names 
@@ -55,8 +58,9 @@ def cnae(request):
     results = []
     for i in Cnae.objects.filter(cnae_class__icontains=request.GET.get('query')):
         results.append({'id': i.id, 'name': i.cnae_class})
-    
+
     return HttpResponse(simplejson.dumps(results))
+
 
 def ocupation(request):
     '''
@@ -64,32 +68,33 @@ def ocupation(request):
     '''
     results = []
     for i in Occupation.objects.filter(title__icontains=request.GET.get('query')):
-        results.append({'id': i.cbo_code, 'name': i.title })
-    
+        results.append({'id': i.cbo_code, 'name': i.title})
+
     return HttpResponse(simplejson.dumps(results))
+
 
 def write_pdf(template_src, context_dict, filename='output.pdf'):
     template = get_template(template_src)
     context = Context(context_dict)
-    html  = template.render(context)
+    html = template.render(context)
     result = StringIO.StringIO()
     pdf = pisa.pisaDocument(StringIO.StringIO(
         html.encode("UTF-8")), result)
     if not pdf.err:
-        response =  HttpResponse(result.getvalue(), mimetype='application/pdf')
+        response = HttpResponse(result.getvalue(), mimetype='application/pdf')
         response['Content-Disposition'] = 'attachment; filename=%s' % filename
         return response
     return http.HttpResponse('Erro making pdf! %s' % cgi.escape(html))
 
+
 def percentage(number, total):
     if not total:
         return 0
-    return "%.1f" % ((int(number)*100.0)/int(total))
+    return "%.1f" % ((int(number) * 100.0) / int(total))
+
 
 def color_rand():
     # generate a random color in hexaformat: DDEE44
     a = "%x" % random.randint(0, 16777215)
     a = '%s0' % a
     return a[:6]
-    
-
