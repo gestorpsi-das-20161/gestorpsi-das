@@ -20,6 +20,8 @@ from gestorpsi.referral.views import referral_off, client_referrals
 
 
 urlpatterns = patterns('gestorpsi.referral.views',
-    (r'^client/(?P<object_id>[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})/$', login_check(client_referrals)), ## MOVED TO CLIENT VIEW
-    (r'^(?P<object_id>\d+)/off/$', login_check(referral_off)),
-)
+                       # MOVED TO CLIENT VIEW
+                       (r'^client/(?P<object_id>[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})/$', login_check(
+                           client_referrals)),
+                       (r'^(?P<object_id>\d+)/off/$', login_check(referral_off)),
+                       )

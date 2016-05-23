@@ -40,6 +40,7 @@ GRAPH_ACCUMULATED = (
     (False, _('Not accumulated Graph')),
 )
 
+
 class ReportForm(forms.ModelForm):
     """
     form used to filter results
@@ -48,55 +49,65 @@ class ReportForm(forms.ModelForm):
     date_start = forms.CharField()
     date_end = forms.CharField()
     service = forms.ChoiceField(label=_('Service'))
-    format = forms.ChoiceField(label=_('Export format'), choices=EXPORT_FORMATS, help_text=_('Here you can choose which format you want to export the data. For printing graphics please use HTML format'))
-    clients = forms.BooleanField(label=_('Include client list'), help_text=_('If selected will a list of clients for each report sub-item'))
-    accumulated = forms.ChoiceField(label=_('Accumulated Graph'), choices=GRAPH_ACCUMULATED, help_text=_('Acummulated graph?'))
-    export_graph_type = forms.ChoiceField(label=_('Graph Type format'), choices=GRAPH_TYPE, help_text=_('Here you can choose which type of graph you need. Note: only for HTML format'))
-    receipt_status = forms.ChoiceField(label=_('Status do faturamento'), choices=STATUS, help_text=_('Status do faturamento'))
-    payment_way = forms.ChoiceField(label=_('Forma de pagamento'), help_text=_('Forma de pagamento'))
-    cove = forms.ChoiceField( label=_(u'Convênio') )
-    professional = forms.ChoiceField( label=_(u'Profissional') )
-    confirmation_status = forms.ChoiceField( label=_(u'Confirmação'), widget=forms.CheckboxSelectMultiple(attrs={'class':'confirmation_select'}) )
-    
+    format = forms.ChoiceField(label=_('Export format'), choices=EXPORT_FORMATS, help_text=_(
+        'Here you can choose which format you want to export the data. For printing graphics please use HTML format'))
+    clients = forms.BooleanField(label=_('Include client list'), help_text=_(
+        'If selected will a list of clients for each report sub-item'))
+    accumulated = forms.ChoiceField(label=_(
+        'Accumulated Graph'), choices=GRAPH_ACCUMULATED, help_text=_('Acummulated graph?'))
+    export_graph_type = forms.ChoiceField(label=_('Graph Type format'), choices=GRAPH_TYPE, help_text=_(
+        'Here you can choose which type of graph you need. Note: only for HTML format'))
+    receipt_status = forms.ChoiceField(label=_(
+        'Status do faturamento'), choices=STATUS, help_text=_('Status do faturamento'))
+    payment_way = forms.ChoiceField(
+        label=_('Forma de pagamento'), help_text=_('Forma de pagamento'))
+    cove = forms.ChoiceField(label=_(u'Convênio'))
+    professional = forms.ChoiceField(label=_(u'Profissional'))
+    confirmation_status = forms.ChoiceField(label=_(
+        u'Confirmação'), widget=forms.CheckboxSelectMultiple(attrs={'class': 'confirmation_select'}))
+
     class Meta:
         model = Report
 
     def __init__(self, date_start, date_end, organization, *args, **kwargs):
         super(ReportForm, self).__init__(*args, **kwargs)
-        self.fields['view'].initial = 1 # admission view as default
-        self.fields['accumulated'].initial = True # acummulated graph as default
+        self.fields['view'].initial = 1  # admission view as default
+        # acummulated graph as default
+        self.fields['accumulated'].initial = True
         self.fields['date_start'].initial = date_start.strftime('%d/%m/%Y')
         self.fields['date_end'].initial = date_end.strftime('%d/%m/%Y')
 
         # professional
-        choices = [(u'all',_('--- Todos ---'))]
-        for i in CareProfessional.objects.filter( person__organization=organization, active=True ):
-            choices.append((i.pk , i ))
+        choices = [(u'all', _('--- Todos ---'))]
+        for i in CareProfessional.objects.filter(person__organization=organization, active=True):
+            choices.append((i.pk, i))
         self.fields['professional'].choices = choices
 
         # covenant
-        choices = [(u'all',_('--- Todos ---'))]
-        for i in Covenant.objects.filter( organization=organization, active=True ):
-            choices.append((i.pk , i ))
+        choices = [(u'all', _('--- Todos ---'))]
+        for i in Covenant.objects.filter(organization=organization, active=True):
+            choices.append((i.pk, i))
         self.fields['cove'].choices = choices
 
         # services
-        choices = [('',_('--- Todos ---'))]
+        choices = [('', _('--- Todos ---'))]
         for i in Service.objects.filter(organization=organization, active=True):
             choices.append((i.pk, i.name))
         self.fields['service'].choices = choices
 
         # payment status
-        self.fields['receipt_status'].choices = tuple([(u'all', '--- Todos ---')] + list(STATUS))
+        self.fields['receipt_status'].choices = tuple(
+            [(u'all', '--- Todos ---')] + list(STATUS))
 
         # payment way
-        choices = [(u'all',_('--- Todos ---'))]
+        choices = [(u'all', _('--- Todos ---'))]
         for i in PaymentWay.objects.filter():
             choices.append((i.pk, i.name))
         self.fields['payment_way'].choices = choices
 
         # confirmation event
-        self.fields['confirmation_status'].choices = tuple( [(u'999', 'Todos'), (u'000','Não confirmado'), (u'111','Confirmado')] + list(OCCURRENCE_CONFIRMATION_PRESENCE) )
+        self.fields['confirmation_status'].choices = tuple(
+            [(u'999', 'Todos'), (u'000', 'Não confirmado'), (u'111', 'Confirmado')] + list(OCCURRENCE_CONFIRMATION_PRESENCE))
 
 
 class ReportSaveForm(forms.ModelForm):
@@ -112,13 +123,15 @@ class ReportSaveForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(ReportSaveForm, self).__init__(*args, **kwargs)
         self.fields['data'].widget = forms.HiddenInput()
-        self.fields['label'].widget.attrs = {'class':'mini_form_input'}
+        self.fields['label'].widget.attrs = {'class': 'mini_form_input'}
+
 
 class ReportSaveAdmissionForm(ReportSaveForm):
     """
     admission form save report view
     'save reports' function
     """
+
     def __init__(self, *args, **kwargs):
         date_start = kwargs.pop('date_start', None)
         date_end = kwargs.pop('date_end', None)
@@ -126,23 +139,28 @@ class ReportSaveAdmissionForm(ReportSaveForm):
         accumulated = kwargs.pop('accumulated', None)
         super(ReportSaveAdmissionForm, self).__init__(*args, **kwargs)
         if date_start and date_end:
-            self.fields['label'].initial = '%s %s %s %s' % (_('Admission between'), date_start.strftime("%d/%m/%Y"),  _('and'), date_end.strftime("%d/%m/%Y"))
-            self.fields['data'].initial = 'view=admission&date_start=%s&date_end=%s&accumulated=%s'% (date_start.strftime("%d/%m/%Y"), date_end.strftime("%d/%m/%Y"), accumulated)
+            self.fields['label'].initial = '%s %s %s %s' % (_('Admission between'), date_start.strftime(
+                "%d/%m/%Y"),  _('and'), date_end.strftime("%d/%m/%Y"))
+            self.fields['data'].initial = 'view=admission&date_start=%s&date_end=%s&accumulated=%s' % (
+                date_start.strftime("%d/%m/%Y"), date_end.strftime("%d/%m/%Y"), accumulated)
 
     def save(self, user, organization, *args, **kwargs):
-        data = super(ReportSaveAdmissionForm, self).save(commit=False, *args, **kwargs)
-        data.view = 1 # admission
+        data = super(ReportSaveAdmissionForm, self).save(
+            commit=False, *args, **kwargs)
+        data.view = 1  # admission
         data.user = user
 
         data.organization = organization
         data.save()
         return data
 
+
 class ReportSaveReferralForm(ReportSaveForm):
     """
     admission form save report view
     'save reports' function
     """
+
     def __init__(self, *args, **kwargs):
         date_start = kwargs.pop('date_start', None)
         date_end = kwargs.pop('date_end', None)
@@ -150,12 +168,15 @@ class ReportSaveReferralForm(ReportSaveForm):
         accumulated = kwargs.pop('accumulated', None)
         super(ReportSaveReferralForm, self).__init__(*args, **kwargs)
         if date_start and date_end:
-            self.fields['label'].initial = u'%s%s %s %s %s' % ('' if not service else (u'%s - ' % service), _('Inscricao entre'), date_start.strftime("%d/%m/%Y"),  _('and'), date_end.strftime("%d/%m/%Y"))
-            self.fields['data'].initial = 'view=referral&date_start=%s&date_end=%s&service=%s&accumulated=%s'% (date_start.strftime("%d/%m/%Y"), date_end.strftime("%d/%m/%Y"), '' if not service else service.pk, accumulated)
+            self.fields['label'].initial = u'%s%s %s %s %s' % ('' if not service else (u'%s - ' % service), _(
+                'Inscricao entre'), date_start.strftime("%d/%m/%Y"),  _('and'), date_end.strftime("%d/%m/%Y"))
+            self.fields['data'].initial = 'view=referral&date_start=%s&date_end=%s&service=%s&accumulated=%s' % (
+                date_start.strftime("%d/%m/%Y"), date_end.strftime("%d/%m/%Y"), '' if not service else service.pk, accumulated)
 
     def save(self, user, organization, *args, **kwargs):
-        data = super(ReportSaveReferralForm, self).save(commit=False, *args, **kwargs)
-        data.view = 2 # referral
+        data = super(ReportSaveReferralForm, self).save(
+            commit=False, *args, **kwargs)
+        data.view = 2  # referral
         data.user = user
         data.organization = organization
         data.save()
@@ -167,6 +188,7 @@ class ReportSaveReceiveForm(ReportSaveForm):
     receive form save report view
     'save reports' function
     """
+
     def __init__(self, *args, **kwargs):
 
         date_start = kwargs.pop('date_start', None)
@@ -181,12 +203,15 @@ class ReportSaveReceiveForm(ReportSaveForm):
 
         if date_start and date_end:
 
-            self.fields['label'].initial = u'%s %s %s %s' % ( _(u'Revenues between'), date_start.strftime("%d/%m/%Y"),  _('and'), date_end.strftime("%d/%m/%Y") )
-            self.fields['data'].initial = 'view=receive&date_start=%s&date_end=%s&service=%s&professional=%s&pway=%s&receive=%s&covenant=%s' % ( date_start.strftime("%d/%m/%Y") , date_end.strftime("%d/%m/%Y") , service , professional , pway , receive , covenant )
+            self.fields['label'].initial = u'%s %s %s %s' % (_(u'Revenues between'), date_start.strftime(
+                "%d/%m/%Y"),  _('and'), date_end.strftime("%d/%m/%Y"))
+            self.fields['data'].initial = 'view=receive&date_start=%s&date_end=%s&service=%s&professional=%s&pway=%s&receive=%s&covenant=%s' % (
+                date_start.strftime("%d/%m/%Y"), date_end.strftime("%d/%m/%Y"), service, professional, pway, receive, covenant)
 
     def save(self, user, organization, *args, **kwargs):
-        data = super(ReportSaveReceiveForm, self).save(commit=False, *args, **kwargs)
-        data.view = 3 # faturamento
+        data = super(ReportSaveReceiveForm, self).save(
+            commit=False, *args, **kwargs)
+        data.view = 3  # faturamento
         data.user = user
         data.organization = organization
         data.save()

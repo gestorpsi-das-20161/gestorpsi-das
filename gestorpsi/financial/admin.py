@@ -17,9 +17,11 @@ GNU General Public License for more details.
 from django.contrib import admin
 from gestorpsi.financial.models import PaymentWay, Receive
 
+
 class ReceiveAdmin(admin.ModelAdmin):
     pass
 admin.site.register(Receive, ReceiveAdmin)
+
 
 class PaymentWayAdmin(admin.ModelAdmin):
     pass

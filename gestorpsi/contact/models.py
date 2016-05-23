@@ -19,7 +19,8 @@ from django.db import connection
 from gestorpsi.organization.models import Organization
 from gestorpsi.careprofessional.models import CareProfessional
 
-def cursor_to_list(cursor, filter_type = None):
+
+def cursor_to_list(cursor, filter_type=None):
     list = []
     for item in cursor:
         if not filter_type or filter_type == item[2]:
@@ -32,11 +33,12 @@ def cursor_to_list(cursor, filter_type = None):
 
     return list
 
+
 class ContactManager(object):
-    
+
     """
     contact filter(*args, **kwargs)
-    
+
     Usage:
     Contact.objects.filter(
         org_id = request.user.get_profile().org_active.id, 
@@ -48,7 +50,6 @@ class ContactManager(object):
     """
 
     def filter(self, *args, **kwargs):
-         
         """ GestorPSI Organizations """
         query = \
             'SELECT o1.id, o1.name, 1 as type, 2 as org_type_id FROM organization_organization o1  LEFT OUTER JOIN ' \
@@ -80,31 +81,30 @@ class ContactManager(object):
             'WHERE U2.organization_id = %s ) AND careprofessional_careprofessional.person_id IS NOT NULL) '\
             'AND (LOWER(organization_organization.name) LIKE LOWER(%s) OR LOWER(person_person.name) LIKE LOWER(%s)) \
             ) AND careprofessional_careprofessional.active=%s  ORDER BY name'
-        
+
         cursor = connection.cursor()
 
-        cursor.execute(query, [ \
-            kwargs.get('org_id') or '%', \
-            kwargs.get('filter_name') or '%', \
-            False if kwargs.get('deactive') else True, \
-            kwargs.get('org_id') or '%', \
-            kwargs.get('person_id') or '%', \
-            kwargs.get('filter_name') or '%', \
-            False if kwargs.get('deactive') else True, \
-            kwargs.get('org_id') or '%', \
-            kwargs.get('person_id') or '%', \
-            kwargs.get('filter_name') or '%', \
-            False if kwargs.get('deactive') else True, \
-            kwargs.get('org_id') or '%', \
-            kwargs.get('filter_name') or '%', \
-            kwargs.get('filter_name') or '%', \
-            False if kwargs.get('deactive') else True, \
-            ])
+        cursor.execute(query, [
+            kwargs.get('org_id') or '%',
+            kwargs.get('filter_name') or '%',
+            False if kwargs.get('deactive') else True,
+            kwargs.get('org_id') or '%',
+            kwargs.get('person_id') or '%',
+            kwargs.get('filter_name') or '%',
+            False if kwargs.get('deactive') else True,
+            kwargs.get('org_id') or '%',
+            kwargs.get('person_id') or '%',
+            kwargs.get('filter_name') or '%',
+            False if kwargs.get('deactive') else True,
+            kwargs.get('org_id') or '%',
+            kwargs.get('filter_name') or '%',
+            kwargs.get('filter_name') or '%',
+            False if kwargs.get('deactive') else True,
+        ])
 
         return cursor_to_list(cursor.fetchall(), kwargs.get('filter_type') or None)
 
     def filter_internal(self, *args, **kwargs):
-
         """ Local Organizations """
         query = \
             'SELECT o1.id, o1.name, 1 as type, 1 as org_type_id FROM organization_organization o1 ' \
@@ -119,21 +119,20 @@ class ContactManager(object):
 
         cursor = connection.cursor()
 
-        cursor.execute(query, [ \
-            kwargs.get('org_id') or '%', \
-            kwargs.get('person_id') or '%', \
-            kwargs.get('filter_name') or '%', \
-            False if kwargs.get('deactive') else True, \
-            kwargs.get('org_id') or '%', \
-            kwargs.get('person_id') or '%', \
-            kwargs.get('filter_name') or '%', \
-            False if kwargs.get('deactive') else True, \
-            ])
+        cursor.execute(query, [
+            kwargs.get('org_id') or '%',
+            kwargs.get('person_id') or '%',
+            kwargs.get('filter_name') or '%',
+            False if kwargs.get('deactive') else True,
+            kwargs.get('org_id') or '%',
+            kwargs.get('person_id') or '%',
+            kwargs.get('filter_name') or '%',
+            False if kwargs.get('deactive') else True,
+        ])
 
         return cursor_to_list(cursor.fetchall(), kwargs.get('filter_type') or None)
 
     def filter_external(self, *args, **kwargs):
-         
         """ GestorPSI Organizations """
         query = \
             'SELECT o1.id, o1.name, 1 as type, 2 as org_type_id FROM organization_organization o1  LEFT OUTER JOIN ' \
@@ -153,30 +152,31 @@ class ContactManager(object):
             'WHERE U2.organization_id = %s ) AND careprofessional_careprofessional.person_id IS NOT NULL) '\
             'AND (LOWER(organization_organization.name) LIKE LOWER(%s) OR LOWER(person_person.name) LIKE LOWER(%s)) \
             ) AND careprofessional_careprofessional.active=%s  ORDER BY name'
-        
+
         cursor = connection.cursor()
 
-        cursor.execute(query, [ \
-            kwargs.get('org_id') or '%', \
-            kwargs.get('filter_name') or '%', \
-            False if kwargs.get('deactive') else True, \
-            kwargs.get('org_id') or '%', \
-            kwargs.get('filter_name') or '%', \
-            kwargs.get('filter_name') or '%', \
-            False if kwargs.get('deactive') else True, \
-            ])
+        cursor.execute(query, [
+            kwargs.get('org_id') or '%',
+            kwargs.get('filter_name') or '%',
+            False if kwargs.get('deactive') else True,
+            kwargs.get('org_id') or '%',
+            kwargs.get('filter_name') or '%',
+            kwargs.get('filter_name') or '%',
+            False if kwargs.get('deactive') else True,
+        ])
 
         return cursor_to_list(cursor.fetchall(), kwargs.get('filter_type') or None)
 
+
 class Contact(object):
     objects = ContactManager()
-    
+
     class Meta:
         permissions = (
             ("contact_list", "Can list contact"),
             ("contact_write", "Can write contact"),
         )
-    
+
     def __unicode__(self):
         return u'%s' % self.name
 
@@ -187,16 +187,16 @@ class Contact(object):
         return True if self.type == 2 else False
 
     def instance(self):
-        if self.is_organization(): # is organization
+        if self.is_organization():  # is organization
             return Organization.objects.get(pk=self.id)
-        if self.is_professional(): # is professional
+        if self.is_professional():  # is professional
             return CareProfessional.objects.get(pk=self.id)
         return None
 
     def _get_org_type(self):
-        if self.org_type_id == 1: # is local
+        if self.org_type_id == 1:  # is local
             return "%s" % 'LOCAL'
-        if self.org_type_id == 2: # is from gestorpsi network
+        if self.org_type_id == 2:  # is from gestorpsi network
             return "%s" % 'GESTORPSI'
         return None
 
@@ -206,23 +206,23 @@ class Contact(object):
         if self.is_professional():
             return "%s" % self.instance().person.get_first_phone() or None
         return None
-    
+
     def _get_first_email(self):
         if self.is_organization():
             return "%s" % self.instance().get_first_email()
         if self.is_professional():
             return "%s" % self.instance().person.get_first_email()
         return None
-    
+
     def _get_professional_profession(self):
         if(self.is_professional()):
             try:
                 return self.instance().professionalIdentification.profession.type
             except:
-                 return None
+                return None
         else:
             return None
-    
+
     def _get_professional_organizations(self):
         if(self.is_professional()):
             organizations = ''
@@ -238,5 +238,3 @@ class Contact(object):
     org_type = property(_get_org_type)
     profession = property(_get_professional_profession)
     organization = property(_get_professional_organizations)
-    
-

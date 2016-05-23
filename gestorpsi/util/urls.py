@@ -19,6 +19,6 @@ from django.contrib.auth.decorators import login_required
 from gestorpsi.util.views import cnae, ocupation
 
 urlpatterns = patterns('',
-    (r'^cnae/$', login_required(cnae)), 
-    (r'^ocupation/$', login_required(ocupation)), 
-)
+                       (r'^cnae/$', login_required(cnae)),
+                       (r'^ocupation/$', login_required(ocupation)),
+                       )

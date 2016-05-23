@@ -146,7 +146,7 @@ class ScheduleOccurrenceForm(MultipleOccurrenceForm):
                 disable_check_busy,
                 reserve,
                 **params
-                )
+            )
         else:
             print type(self.errors)
             error_message = []
@@ -160,7 +160,7 @@ class ScheduleOccurrenceForm(MultipleOccurrenceForm):
                 'room': self.cleaned_data['room'],
                 'group': event.group,
                 'error_message': error_message,
-                }]
+            }]
 
         return event
 

@@ -16,6 +16,7 @@ GNU General Public License for more details.
 
 from django.db import models
 
+
 class Occupation(models.Model):
     """
     This class represents an occupation according to http://www.mte.gov.br
@@ -29,6 +30,7 @@ class Occupation(models.Model):
     def __unicode__(self):
         return u"%s" % self.title
 
+
 class Synonyms(models.Model):
     """
     This class represents a synonyms that refers to an occupation
@@ -41,4 +43,3 @@ class Synonyms(models.Model):
 
     def __unicode__(self):
         return u"%s" % self.title
-

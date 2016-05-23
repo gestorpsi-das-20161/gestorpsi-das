@@ -24,12 +24,13 @@ GNU General Public License for more details.
 from django.contrib import admin
 from gestorpsi.admission.models import *
 
+
 class ReferralChoiceAdmin(admin.ModelAdmin):
     pass
+
 
 class AdmissionReferralAdmin(admin.ModelAdmin):
     pass
 
 admin.site.register(ReferralChoice, ReferralChoiceAdmin)
 admin.site.register(AdmissionReferral, AdmissionReferralAdmin)
-

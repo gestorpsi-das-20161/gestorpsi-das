@@ -20,11 +20,12 @@ from django.utils.translation import ugettext as _
 from gestorpsi.person.models import Person
 from gestorpsi.util.uuid_field import UuidField
 
-STATUS= ( 
-    ('1',_('Open')), 
+STATUS = (
+    ('1', _('Open')),
     ('2', _('Processing')),
     ('2', _('Closed')),
-    )
+)
+
 
 class Ticket(models.Model):
     """
@@ -32,16 +33,16 @@ class Ticket(models.Model):
     @author: Fabio A Martins
     @version: 1.0
     """
-    id= UuidField(primary_key=True)
+    id = UuidField(primary_key=True)
     user = models.ForeignKey(Person, null=True)
     contact_name = models.CharField(max_length=255)
     contact_email = models.CharField(max_length=255)
     contact_phone = models.CharField(max_length=255)
     ticket_id = models.IntegerField(max_length=8)
     question = models.TextField()
-    status = models.IntegerField( max_length=1, choices=STATUS, default = 1)
+    status = models.IntegerField(max_length=1, choices=STATUS, default=1)
     date = models.DateTimeField(auto_now=True)
-    
+
     def __unicode__(self):
         return "%s %s" % (self.ticket_id, self.question)
 
@@ -54,18 +55,19 @@ class Ticket(models.Model):
 
 reversion.register(Ticket)
 
+
 class TicketIteration(models.Model):
     """
     This class register tickets iterations.
     @author: Fabio A Martins
     @version: 1.0
     """
-    id= UuidField(primary_key=True)
+    id = UuidField(primary_key=True)
     ticket = models.ForeignKey(Ticket)
     operator = models.ForeignKey(Person, null=True, related_name='operator')
     answer = models.TextField(max_length=765, blank=True)
     date = models.DateTimeField(auto_now=True)
-    
+
     def __unicode__(self):
         return "%s %s" % (self.operator, self.answer)
 
@@ -74,11 +76,12 @@ class TicketIteration(models.Model):
 
 reversion.register(TicketIteration)
 
+
 class Documentation(models.Model):
     title = models.CharField(max_length=255)
     body = models.TextField(blank=True, null=True)
     parent = models.ForeignKey('Documentation', blank=True, null=True)
-    
+
     def __unicode__(self):
         return '%s' % self.title
 

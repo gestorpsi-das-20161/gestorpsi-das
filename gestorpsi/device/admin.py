@@ -28,8 +28,9 @@ from gestorpsi.device.models import Device, DeviceDetails
 class DeviceAdmin(admin.ModelAdmin):
     pass
 
+
 class DeviceDetailsAdmin(admin.ModelAdmin):
     pass
 
 admin.site.register(Device, DeviceAdmin)
-admin.site.register(DeviceDetails, DeviceDetailsAdmin)    
+admin.site.register(DeviceDetails, DeviceDetailsAdmin)

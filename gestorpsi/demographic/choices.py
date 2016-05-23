@@ -44,5 +44,3 @@ LABOR_MARKET_STATUS = (
     ('11', _('Not working')),
     ('99', _('Other')),
 )
-
-

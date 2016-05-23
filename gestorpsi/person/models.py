@@ -30,9 +30,9 @@ from gestorpsi.util.models import Cnae
 from datetime import datetime
 
 Gender = (
-    ('0','No Information'),
-    ('1','Female'),
-    ('2','Male')
+    ('0', 'No Information'),
+    ('1', 'Female'),
+    ('2', 'Male')
 )
 
 COMPANY_SIZE = (
@@ -41,30 +41,35 @@ COMPANY_SIZE = (
     (3, _('Big')),
 )
 
+
 class MaritalStatus(models.Model):
     description = models.CharField(max_length=20)
+
     def __unicode__(self):
         return u"%s" % self.description
+
     class Meta:
         ordering = ['description']
 
+
 class Person(models.Model):
     id = UuidField(primary_key=True)
-    user = models.ForeignKey(User, editable=False, default=threadlocals.get_current_user) # the register owner
+    user = models.ForeignKey(
+        User, editable=False, default=threadlocals.get_current_user)  # the register owner
     name = models.CharField(max_length=50)
     nickname = models.CharField(max_length=50, null=True, blank=True)
     photo = models.CharField(max_length=100)
     birthDate = models.DateField(null=True)
     birthPlace = models.ForeignKey(City, null=True)
     birthDateSupposed = models.BooleanField(default=False)
-    gender = models.CharField(max_length=1, choices=Gender) 
+    gender = models.CharField(max_length=1, choices=Gender)
     maritalStatus = models.ForeignKey(MaritalStatus, null=True)
     phones = generic.GenericRelation(Phone, null=True)
     address = generic.GenericRelation(Address, null=True)
     document = generic.GenericRelation(Document, null=True)
-    emails  = generic.GenericRelation(Email, null=True)
+    emails = generic.GenericRelation(Email, null=True)
     sites = generic.GenericRelation(Site, null=True)
-    instantMessengers =generic.GenericRelation(InstantMessenger, null=True)
+    instantMessengers = generic.GenericRelation(InstantMessenger, null=True)
     comments = models.TextField(blank=True)
     active = models.BooleanField(default=True)
     organization = models.ManyToManyField(Organization)
@@ -73,7 +78,7 @@ class Person(models.Model):
     birthForeignCity = models.CharField(max_length=100, null=True)
     birthForeignState = models.CharField(max_length=100, null=True)
     birthForeignCountry = models.IntegerField(max_length=4, null=True)
-        
+
     def __unicode__(self):
         return (u"%s (%s)" % (self.name.title(), _('Company'))) if self.is_company() else (u"%s" % (self.name.title()))
 
@@ -83,15 +88,15 @@ class Person(models.Model):
             for p in self.organization_set.all():
                 p.employee_number = p.care_professionals()
                 p.save()
-    
+
     def delete(self, *args, **kwargs):
         super(Person, self).delete(*args, **kwargs)
         for p in self.organization_set.all():
             p.employee_number = p.care_professionals()
             p.save()
 
-
     """ function used only in reports.py waiting a fix in Geraldo SubReport"""
+
     def get_documents(self):
         if self.document.all().count() > 1:
             text = u"%s " % self.document.all()[0]
@@ -103,6 +108,7 @@ class Person(models.Model):
         return text
 
     """ function used only in reports.py waiting a fix in Geraldo SubReport"""
+
     def get_phones(self):
         if self.phones.all().count() > 1:
             text = "%s " % self.phones.all()[0]
@@ -114,6 +120,7 @@ class Person(models.Model):
         return text
 
     """ function used only in reports.py waiting a fix in Geraldo SubReport"""
+
     def get_internet(self):
         text = ""
         if self.emails.all().count():
@@ -131,24 +138,30 @@ class Person(models.Model):
         return text
 
     """ function used only in reports.py waiting a fix in Geraldo SubReport"""
+
     def get_address(self):
         text = ""
         if self.address.all().count():
             addr = self.address.all()[0]
-            text = "%s %s, %s" % (addr.addressPrefix, addr.addressLine1, addr.addressNumber)
-            if len(addr.addressLine2): text += " - %s" % addr.addressLine2
-            if len(addr.neighborhood): text += " - %s" % addr.neighborhood
-            text += "<br />%s - %s - %s" % (first_capitalized(addr.city.name), addr.city.state.shortName, addr.city.state.country.name)
-            if len(addr.zipCode): text += " - CEP: %s" % addr.zipCode
+            text = "%s %s, %s" % (addr.addressPrefix,
+                                  addr.addressLine1, addr.addressNumber)
+            if len(addr.addressLine2):
+                text += " - %s" % addr.addressLine2
+            if len(addr.neighborhood):
+                text += " - %s" % addr.neighborhood
+            text += "<br />%s - %s - %s" % (first_capitalized(
+                addr.city.name), addr.city.state.shortName, addr.city.state.country.name)
+            if len(addr.zipCode):
+                text += " - CEP: %s" % addr.zipCode
         return text
 
     def get_photo(self):
-        from gestorpsi.settings import MEDIA_ROOT #, PROJECT_ROOT_PATH
-        #TODO: NEED FIX THIS BUG WHEN GENERATING CLIENT PDF WITH PHOTO
+        from gestorpsi.settings import MEDIA_ROOT  # , PROJECT_ROOT_PATH
+        # TODO: NEED FIX THIS BUG WHEN GENERATING CLIENT PDF WITH PHOTO
         #      PERSON HAS A M2M RELATIONSHIP TO ORGANIZATION, NOT ONE-TO-ONE
-        #if len(self.photo):
+        # if len(self.photo):
         #    return "%simg/organization/%s/.thumb-whitebg/%s" % (MEDIA_ROOT, self.organization.id, self.photo)
-        #else:
+        # else:
         #    return "%simg/%s" % (MEDIA_ROOT, 'male_generic_photo.png')
         return "%simg/%s" % (MEDIA_ROOT, 'male_generic_photo.png')
 
@@ -177,22 +190,22 @@ class Person(models.Model):
             return self.birthPlace.state.country
 
     def get_first_phone(self):
-        if ( len( self.phones.all() ) != 0 ):
+        if (len(self.phones.all()) != 0):
             return self.phones.all()[0]
         else:
             return ''
-    
+
     def get_first_email(self):
-        if ( len( self.emails.all() ) != 0 ):
+        if (len(self.emails.all()) != 0):
             return self.emails.all()[0]
         else:
             return ''
-        
+
     def get_first_site(self):
-        if ( len( self.sites.all() ) != 0 ):
+        if (len(self.sites.all()) != 0):
             return self.sites.all()[0]
         else:
-            return ''        
+            return ''
 
     def _age(self):
         if not self.birthDate:
@@ -206,13 +219,13 @@ class Person(models.Model):
         return True if hasattr(self, 'company') else False
 
     def is_administrator(self):
-        if not hasattr(self, 'profile'): 
+        if not hasattr(self, 'profile'):
             return False
         else:
             return False if not 'administrator' in [i.name for i in self.profile.user.groups.all()] else True
 
     def is_secretary(self):
-        if not hasattr(self, 'profile'): 
+        if not hasattr(self, 'profile'):
             return False
         else:
             return False if not 'secretary' in [i.name for i in self.profile.user.groups.all()] else True
@@ -238,6 +251,7 @@ class Person(models.Model):
     class Meta:
         ordering = ['name']
 
+
 class CompanyClient(models.Model):
     from gestorpsi.client.models import Client
     client = models.ForeignKey(Client)
@@ -252,16 +266,20 @@ class CompanyClient(models.Model):
         ordering = ['-active', '-responsible', 'client']
         unique_together = (('client', 'company'),)
 
+
 class Company(models.Model):
     from gestorpsi.client.models import Client
     person = models.OneToOneField(Person, blank=True, null=True)
-    size = models.IntegerField(_('Company Size'), blank=True, null=True, choices=COMPANY_SIZE)
-    cnae_class = models.CharField(_('CNAE Subclass Code'), blank=True, null=True, max_length=9)
-    client = models.ManyToManyField(Client, blank=True, through='CompanyClient')
+    size = models.IntegerField(
+        _('Company Size'), blank=True, null=True, choices=COMPANY_SIZE)
+    cnae_class = models.CharField(
+        _('CNAE Subclass Code'), blank=True, null=True, max_length=9)
+    client = models.ManyToManyField(
+        Client, blank=True, through='CompanyClient')
 
     def __unicode__(self):
         return u'%s' % self.person.name
-    
+
     def _cnae_class_name(self):
         c = Cnae.objects.filter(id=self.cnae_class)
         if len(c):

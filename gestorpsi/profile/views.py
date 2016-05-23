@@ -38,46 +38,47 @@ def form(request):
         raise Http404
 
     tab = 'profile'
-    
+
     countries = Country.objects.all()
     PhoneTypes = PhoneType.objects.all()
     AddressTypes = AddressType.objects.all()
     EmailTypes = EmailType.objects.all()
-    IMNetworks = IMNetwork.objects.all() 
+    IMNetworks = IMNetwork.objects.all()
     TypeDocuments = TypeDocument.objects.all()
     Issuers = Issuer.objects.all()
     States = State.objects.all()
     MaritalStatusTypes = MaritalStatus.objects.all()
 
-    phones    = object.person.phones.all()
+    phones = object.person.phones.all()
     addresses = object.person.address.all()
-    documents = object.person.document.all()                       
-    emails    = object.person.emails.all()
-    websites  = object.person.sites.all()
-    ims       = object.person.instantMessengers.all()
+    documents = object.person.document.all()
+    emails = object.person.emails.all()
+    websites = object.person.sites.all()
+    ims = object.person.instantMessengers.all()
 
     return render_to_response('profile/profile_person.html', locals(), context_instance=RequestContext(request))
 
 
 def form_careprofessional(request):
-    object = get_object_or_404(CareProfessional, pk=request.user.get_profile().person.careprofessional.id)
+    object = get_object_or_404(
+        CareProfessional, pk=request.user.get_profile().person.careprofessional.id)
     workplaces = object.professionalProfile.workplace.all()
 
     return render_to_response('profile/profile_careprofessional.html', {
-                                    'object': object,
-                                    'PROFESSIONAL_AREAS': Profession.objects.all(),
-                                    'WorkPlacesTypes': Place.objects.filter(organization = request.user.get_profile().org_active.id),
-                                    'workplaces': workplaces,
-                                    'ServiceTypes': Service.objects.filter( active=True, organization=request.user.get_profile().org_active ),
-                                    'PlaceTypes': PlaceType.objects.all(),
-                                    'tab':'careprof',
-                                    },
-                              context_instance=RequestContext(request))
+        'object': object,
+        'PROFESSIONAL_AREAS': Profession.objects.all(),
+        'WorkPlacesTypes': Place.objects.filter(organization=request.user.get_profile().org_active.id),
+        'workplaces': workplaces,
+        'ServiceTypes': Service.objects.filter(active=True, organization=request.user.get_profile().org_active),
+        'PlaceTypes': PlaceType.objects.all(),
+        'tab': 'careprof',
+    },
+        context_instance=RequestContext(request))
 
 
 def save(request):
     if not request.method == 'POST':
-        raise Http404  
+        raise Http404
     try:
         person = request.user.get_profile().person
         person_save(request, person)
@@ -86,10 +87,11 @@ def save(request):
 
     messages.success(request, _('Profile updated successfully'))
     return HttpResponseRedirect('/profile/')
-    
+
 
 def save_careprofessional(request):
-    object = get_object_or_404(CareProfessional, pk=request.user.get_profile().person.careprofessional.id)
+    object = get_object_or_404(
+        CareProfessional, pk=request.user.get_profile().person.careprofessional.id)
     object = save_careprof(request, object.id, False)
     messages.success(request, _('Professional profile saved successfully'))
     return HttpResponseRedirect('/profile/careprofessional/')
@@ -100,9 +102,11 @@ def change_pass(request):
     tab = 'changepass'
 
     if request.user.get_profile().person.is_careprofessional:
-        object = get_object_or_404(CareProfessional, pk=request.user.get_profile().person.careprofessional.id)
+        object = get_object_or_404(
+            CareProfessional, pk=request.user.get_profile().person.careprofessional.id)
     if request.user.get_profile().person.is_careprofessional:
-        object = get_object_or_404(CareProfessional, pk=request.user.get_profile().person.careprofessional.id)
+        object = get_object_or_404(
+            CareProfessional, pk=request.user.get_profile().person.careprofessional.id)
 
     if request.POST.get('c_pass'):
 
@@ -111,11 +115,13 @@ def change_pass(request):
             return HttpResponseRedirect('/profile/chpass/')
         else:
             if request.POST.get("n_pass") != request.POST.get("n_pass0"):
-                messages.error(request, _('The confirmation of the new password is wrong'))
+                messages.error(request, _(
+                    'The confirmation of the new password is wrong'))
                 return HttpResponseRedirect('/profile/chpass/')
             else:
                 request.user.set_password(request.POST.get('n_pass'))
-                request.user.get_profile().temp = request.POST.get('n_pass')    # temporary field (LDAP)
+                request.user.get_profile().temp = request.POST.get(
+                    'n_pass')    # temporary field (LDAP)
                 request.user.get_profile().save(force_update=True)
                 request.user.save(force_update=True)
                 messages.success(request, _('Password updated successfully'))

@@ -17,16 +17,16 @@ GNU General Public License for more details.
 #from django.contrib import admin
 #from gestorpsi.psychologist.models import Approaches, Area, AgeGroup, Psychologist
 
-#class ApproachesAdmin(admin.ModelAdmin):
+# class ApproachesAdmin(admin.ModelAdmin):
 #    pass
 
-#class AreaAdmin(admin.ModelAdmin):
+# class AreaAdmin(admin.ModelAdmin):
 #    pass
 
-#class AgeGroupAdmin(admin.ModelAdmin):
+# class AgeGroupAdmin(admin.ModelAdmin):
 #    pass
 
-#class PsychologistAdmin(admin.ModelAdmin):
+# class PsychologistAdmin(admin.ModelAdmin):
 #    pass
 
 #admin.site.register(Approaches, ApproachesAdmin)

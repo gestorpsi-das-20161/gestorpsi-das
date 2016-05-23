@@ -20,10 +20,12 @@ from gestorpsi.cbo.models import Occupation
 from gestorpsi.demographic.choices import *
 from gestorpsi.client.models import Client
 
+
 class Profession(models.Model):
     profession = models.ForeignKey(Occupation, null=True)
-    synonyms =  models.CharField(max_length=999, null=True)
-    labor_market_status = models.CharField(max_length=2, choices=LABOR_MARKET_STATUS)
+    synonyms = models.CharField(max_length=999, null=True)
+    labor_market_status = models.CharField(
+        max_length=2, choices=LABOR_MARKET_STATUS)
     workplace = models.TextField(blank=True)
     working_hours = models.TextField(blank=True)
     status = models.BooleanField(default=True)
@@ -32,15 +34,16 @@ class Profession(models.Model):
 
     def __unicode__(self):
         return u"%s" % self.profession
-    
+
     class Meta:
         ordering = ['-status']
+
 
 class EducationalLevel(models.Model):
     school_grade = models.CharField(max_length=2, choices=EDUCATION_LEVEL)
     comments = models.TextField(blank=True)
     client = models.OneToOneField(Client, null=True)
-        
+
     def __unicode__(self):
         return u"%s" % self.get_school_grade_display()
 

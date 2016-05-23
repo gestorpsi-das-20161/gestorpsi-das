@@ -24,6 +24,7 @@ Author: Sergio Durand - GestorPsi
 Date: Feb 12, 2009
 """
 
+
 def first_capitalized(text):
     value = text.lower()
     return " ".join([sentence.capitalize() for sentence in value.split(" ")])

@@ -27,7 +27,8 @@ from django.db.models.fields import CharField
 
 # south rule for UuidField
 from south.modelsinspector import add_introspection_rules
-add_introspection_rules( [], ["^gestorpsi\.util\.uuid_field\.UuidField"] )
+add_introspection_rules([], ["^gestorpsi\.util\.uuid_field\.UuidField"])
+
 
 class UuidField(CharField):
     """ A field which stores a UUID value, this may also have the Boolean
@@ -35,6 +36,7 @@ class UuidField(CharField):
         UUID value (calculated using the UUID1 method). Note that while all
         UUIDs are expected to be unique we enforce this with a DB constraint.
     """
+
     def __init__(self, verbose_name=None, name=None, auto=True, **kwargs):
         self.auto = auto
         # Set this as a fixed value, we store UUIDs in text.

@@ -29,13 +29,14 @@ from gestorpsi.covenant.forms import CovenantForm
 from gestorpsi.service.models import Service
 from gestorpsi.financial.models import PaymentWay
 
-from gestorpsi.settings import PAGE_RESULTS #DEBUG, MEDIA_URL, MEDIA_ROOT
+from gestorpsi.settings import PAGE_RESULTS  # DEBUG, MEDIA_URL, MEDIA_ROOT
 
 """
     Tiago de Souza Moraes
     tiago @ futuria com br
     13 11 2014
 """
+
 
 def index(request, active=True):
     """
@@ -45,13 +46,12 @@ def index(request, active=True):
     tab = 'deactive' if not active else 'active'
 
     return render_to_response('covenant/covenant_index.html',
-        {
-            'tab' : tab,
-            'list_url_base': list_url_base,
-        },
-        context_instance=RequestContext(request)
-    )
-
+                              {
+                                  'tab': tab,
+                                  'list_url_base': list_url_base,
+                              },
+                              context_instance=RequestContext(request)
+                              )
 
 
 def form(request, obj=False):
@@ -59,19 +59,21 @@ def form(request, obj=False):
         covenant form, update or save new
         obj: Covenant.id
     """
-    tab = 'form' # new register
+    tab = 'form'  # new register
 
     # all services
-    service_list = Service.objects.filter( active=True, organization=request.user.get_profile().org_active)
+    service_list = Service.objects.filter(
+        active=True, organization=request.user.get_profile().org_active)
 
-    if obj: # update register
+    if obj:  # update register
 
-        tab = 'edit' # edit register
+        tab = 'edit'  # edit register
         obj = get_object_or_404(Covenant, pk=obj)
 
         # individual services
         if obj.charge > 1:
-            service_list = Service.objects.filter(is_group=False, active=True, organization=request.user.get_profile().org_active)
+            service_list = Service.objects.filter(
+                is_group=False, active=True, organization=request.user.get_profile().org_active)
 
     if request.POST:
 
@@ -83,48 +85,47 @@ def form(request, obj=False):
 
         if form.is_valid():
             # update or new
-            obj = form.save(commit=False) # A org is required
+            obj = form.save(commit=False)  # A org is required
             obj.organization = request.user.get_profile().org_active
-            obj.save() # save before add services
+            obj.save()  # save before add services
 
             # add services
-            obj.service_set.clear() # remove all
-            for x in request.POST.getlist('services'): # add selected
-                obj.service_set.add( Service.objects.get(pk=x) )
+            obj.service_set.clear()  # remove all
+            for x in request.POST.getlist('services'):  # add selected
+                obj.service_set.add(Service.objects.get(pk=x))
 
             # payment way
-            obj.payment_way.clear() # remove all
+            obj.payment_way.clear()  # remove all
             for x in request.POST.getlist('payment_way'):
-                obj.payment_way.add( PaymentWay.objects.get(pk=x) )
+                obj.payment_way.add(PaymentWay.objects.get(pk=x))
 
-            obj.save() # update
+            obj.save()  # update
 
             messages.success(request, _(u'Salvo com sucesso!'))
-            return HttpResponseRedirect('/covenant/%s/' % obj.id )
+            return HttpResponseRedirect('/covenant/%s/' % obj.id)
 
         else:
             messages.error(request, _(u'Erro no preenchimento do campo'))
     # mount form
     else:
-    
+
         if obj:
-            form = CovenantForm( instance=obj )
+            form = CovenantForm(instance=obj)
         else:
             form = CovenantForm()
             obj = Covenant()
 
     return render_to_response('covenant/covenant_form.html',
-                                {
-                                    'form': form,
-                                    'obj': obj,
-                                    'tab': tab,
-                                    'category': CATEGORY,
-                                    'charge': CHARGE,
-                                    'service_list': service_list,
-                                },
-                                context_instance=RequestContext(request)
-    )
-
+                              {
+                                  'form': form,
+                                  'obj': obj,
+                                  'tab': tab,
+                                  'category': CATEGORY,
+                                  'charge': CHARGE,
+                                  'service_list': service_list,
+                              },
+                              context_instance=RequestContext(request)
+                              )
 
 
 def list_json(request, service=False, obj=False, order=False):
@@ -140,7 +141,7 @@ def list_json(request, service=False, obj=False, order=False):
             all: All active covenants
     '''
     c = 0
-    covenant = {} # json
+    covenant = {}  # json
 
     # return all active covenant for a group
     if order == 'group':
@@ -185,7 +186,8 @@ def list_json(request, service=False, obj=False, order=False):
             # mount html checkbox
             payment = ''
             for x in o.payment_way.all():
-                payment += '<li><label><input type="checkbox" value="%s" name="TEMPID999FORM-pw" class="small" />&nbsp;%s</label></li>' % (x.id, x.name)
+                payment += '<li><label><input type="checkbox" value="%s" name="TEMPID999FORM-pw" class="small" />&nbsp;%s</label></li>' % (
+                    x.id, x.name)
 
             covenant[c] = {
                 'id': o.id,
@@ -193,12 +195,11 @@ def list_json(request, service=False, obj=False, order=False):
                 'price': u'%s' % o.price,
                 'charge': u'%s' % o.get_charge_display(),
                 'events': u'%s' % o.event_time,
-                'payment_way':u'%s' % payment,
+                'payment_way': u'%s' % payment,
             }
             c += 1
 
-    return HttpResponse(simplejson.dumps(covenant, encoding = 'iso8859-1'), mimetype='application/json')
-
+    return HttpResponse(simplejson.dumps(covenant, encoding='iso8859-1'), mimetype='application/json')
 
 
 def list_filter(request, active=True):
@@ -210,9 +211,11 @@ def list_filter(request, active=True):
     list_url_base = '/covenant/list/deactive/' if not active else '/covenant/list/active/'
 
     if active:
-        obj_list = Covenant.objects.filter(active=True, organization=request.user.get_profile().org_active)
+        obj_list = Covenant.objects.filter(
+            active=True, organization=request.user.get_profile().org_active)
     else:
-        obj_list = Covenant.objects.filter(active=False, organization=request.user.get_profile().org_active)
+        obj_list = Covenant.objects.filter(
+            active=False, organization=request.user.get_profile().org_active)
 
     # filters
     url_extra = ''
@@ -236,7 +239,7 @@ def list_filter(request, active=True):
 
     search = request.GET.get('search')
     if search:
-        obj_list = obj_list.filter(name__icontains = search)
+        obj_list = obj_list.filter(name__icontains=search)
         url_extra += '&search=%s' % search
     else:
         search = ''
@@ -248,11 +251,11 @@ def list_filter(request, active=True):
     object_list = page.object_list
 
     # mount page
-    service_list = Service.objects.filter( active=True, organization=request.user.get_profile().org_active )
+    service_list = Service.objects.filter(
+        active=True, organization=request.user.get_profile().org_active)
     initials = string.uppercase
 
     return render_to_response('tags/list_item_covenant.html', locals(), context_instance=RequestContext(request))
-
 
 
 def order(request, obj=False):
@@ -271,6 +274,6 @@ def order(request, obj=False):
             messages.success(request, _(u'Convênio ativado com sucesso!'))
 
         obj.save()
-        return HttpResponseRedirect('/covenant/%s/' % obj.id )
+        return HttpResponseRedirect('/covenant/%s/' % obj.id)
 
     return False

@@ -38,79 +38,102 @@ from gestorpsi.online_messages.views import _new_topic_message
 def referral_list(request):
     if not request.user.get_profile().person.is_client():
         raise Http404
-    object = get_object_or_404(Client, pk=request.user.get_profile().person.client.id)
+    object = get_object_or_404(
+        Client, pk=request.user.get_profile().person.client.id)
 
     return render_to_response('profile/client/referral_list.html', locals(), context_instance=RequestContext(request))
 
-def referral_occurrences(request, referral_id = None, type = 'upcoming'):
-    client = get_object_or_404(Client, pk=request.user.get_profile().person.client.id)
+
+def referral_occurrences(request, referral_id=None, type='upcoming'):
+    client = get_object_or_404(
+        Client, pk=request.user.get_profile().person.client.id)
     if not request.user.get_profile().person.is_client() \
-        or client not in [c for c in Referral.objects.get(pk=referral_id).client.all()]:
+            or client not in [c for c in Referral.objects.get(pk=referral_id).client.all()]:
         raise Http404
     return _referral_occurrences(request, client.id, referral_id, type, 'profile/client/referral_occurrences.html')
 
-def referral_home(request, object_id = None):
-    client = get_object_or_404(Client, pk=request.user.get_profile().person.client.id)
+
+def referral_home(request, object_id=None):
+    client = get_object_or_404(
+        Client, pk=request.user.get_profile().person.client.id)
     if not request.user.get_profile().person.is_client() \
-        or client not in [c for c in Referral.objects.get(pk=object_id).client.all()]:
+            or client not in [c for c in Referral.objects.get(pk=object_id).client.all()]:
         raise Http404
     return _referral_view(request, client.id, object_id, 'profile/client/referral_home.html')
 
+
 def referral_messages(request, referral_id):
-    client = get_object_or_404(Client, pk=request.user.get_profile().person.client.id)
+    client = get_object_or_404(
+        Client, pk=request.user.get_profile().person.client.id)
     if not request.user.get_profile().person.is_client() \
-        or client not in [c for c in Referral.objects.get(pk=referral_id).client.all()]:
+            or client not in [c for c in Referral.objects.get(pk=referral_id).client.all()]:
         raise Http404
     return _referral_messages(request, referral_id,  client.id, "profile/client/messages_referral.html")
 
-def occurrence_chat(request, object_id = None):
-    client = get_object_or_404(Client, pk=request.user.get_profile().person.client.id)
+
+def occurrence_chat(request, object_id=None):
+    client = get_object_or_404(
+        Client, pk=request.user.get_profile().person.client.id)
     if not request.user.get_profile().person.is_client() \
-        or client not in [c for c in Occurrence.objects.get(pk=object_id).event.referral.client.all()]:
+            or client not in [c for c in Occurrence.objects.get(pk=object_id).event.referral.client.all()]:
         raise Http404
     return _occurrence_chat(request, client.id, object_id, 'profile/client/messages_chat.html')
 
+
 def update_chat_message(request, messagetopic_id, lastmessage_id):
-    client = get_object_or_404(Client, pk=request.user.get_profile().person.client.id)
+    client = get_object_or_404(
+        Client, pk=request.user.get_profile().person.client.id)
     if not request.user.get_profile().person.is_client() \
-        or client not in [c for c in MessageTopic.objects.get(pk=messagetopic_id).referral.client.all()]:
+            or client not in [c for c in MessageTopic.objects.get(pk=messagetopic_id).referral.client.all()]:
         raise Http404
     return _update_chat_message(request, client.id, messagetopic_id, lastmessage_id)
 
+
 def chat_message(request, messagetopic_id):
-    client = get_object_or_404(Client, pk=request.user.get_profile().person.client.id)
+    client = get_object_or_404(
+        Client, pk=request.user.get_profile().person.client.id)
     if not request.user.get_profile().person.is_client() \
-        or client not in [c for c in MessageTopic.objects.get(pk=messagetopic_id).referral.client.all()]:
+            or client not in [c for c in MessageTopic.objects.get(pk=messagetopic_id).referral.client.all()]:
         raise Http404
     return _chat_message(request, client.id, messagetopic_id)
 
+
 def chat_messages_history(request, scheduleoccurrence_id, referral_id):
-    client = get_object_or_404(Client, pk=request.user.get_profile().person.client.id)
-    scheduleoccurrence = ScheduleOccurrence.objects.get(pk=scheduleoccurrence_id)
+    client = get_object_or_404(
+        Client, pk=request.user.get_profile().person.client.id)
+    scheduleoccurrence = ScheduleOccurrence.objects.get(
+        pk=scheduleoccurrence_id)
 
     if scheduleoccurrence.messagetopic_set.count() > 0:
         messagetopic = scheduleoccurrence.messagetopic_set.all()[0]
     return _chat_messages_history(request, client.id, scheduleoccurrence_id, referral_id, "/profile/client/referral/%s/messages/topic/%s" % (referral_id, messagetopic.id))
 
+
 def topic_messages(request, referral_id, topic_id):
-    client = get_object_or_404(Client, pk=request.user.get_profile().person.client.id)
+    client = get_object_or_404(
+        Client, pk=request.user.get_profile().person.client.id)
     if not request.user.get_profile().person.is_client() \
-        or client not in [c for c in MessageTopic.objects.get(pk=topic_id).referral.client.all()]:
+            or client not in [c for c in MessageTopic.objects.get(pk=topic_id).referral.client.all()]:
         raise Http404
     return _topic_messages(request, referral_id, topic_id, client.id, "profile/client/messages_topic.html")
 
+
 def new_topic_message(request, referral_id, topic_id):
-    client = get_object_or_404(Client, pk=request.user.get_profile().person.client.id)
+    client = get_object_or_404(
+        Client, pk=request.user.get_profile().person.client.id)
     if not request.user.get_profile().person.is_client() \
-        or client not in [c for c in Referral.objects.get(pk=referral_id).client.all()]:
+            or client not in [c for c in Referral.objects.get(pk=referral_id).client.all()]:
         raise Http404
-    return _new_topic_message(request, referral_id, topic_id, client.id, \
-        '/profile/client/referral/%s/messages/topic/%s' % (referral_id, topic_id),
-    )
+    return _new_topic_message(request, referral_id, topic_id, client.id,
+                              '/profile/client/referral/%s/messages/topic/%s' % (
+                                  referral_id, topic_id),
+                              )
+
 
 def exit_chat(request, messagetopic_id):
-    client = get_object_or_404(Client, pk=request.user.get_profile().person.client.id)
+    client = get_object_or_404(
+        Client, pk=request.user.get_profile().person.client.id)
     if not request.user.get_profile().person.is_client() \
-        or client not in [c for c in MessageTopic.objects.get(pk=messagetopic_id).referral.client.all()]:
+            or client not in [c for c in MessageTopic.objects.get(pk=messagetopic_id).referral.client.all()]:
         raise Http404
     return _exit_chat(request, client.id, messagetopic_id, '/profile/client/referral/%s' % MessageTopic.objects.get(pk=messagetopic_id).referral.id)

@@ -19,5 +19,6 @@ from gestorpsi.authentication.views import login_check
 from gestorpsi.financial.views import receive_form
 
 urlpatterns = patterns('',
-    url(r'^receive/(?P<obj>[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})/$', login_check(receive_form), name='financial-receive-form'), 
-)
+                       url(r'^receive/(?P<obj>[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})/$', login_check(
+                           receive_form), name='financial-receive-form'),
+                       )

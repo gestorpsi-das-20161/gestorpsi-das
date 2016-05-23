@@ -42,47 +42,48 @@ from gestorpsi.boleto.models import *
 #from gestorpsi.boleto.return_file import *
 from gestorpsi.gcm.forms import fields
 
+
 def CNPJValidator(value):
     def generate_digits(value):
         cnpj = value
-        if len( cnpj ) != 18:
-            return False;
+        if len(cnpj) != 18:
+            return False
         else:
             soma = 0
-            soma += int(cnpj[0])*5
-            soma += int(cnpj[1])*4
-            soma += int(cnpj[3])*3
-            soma += int(cnpj[4])*2
-            soma += int(cnpj[5])*9
-            soma += int(cnpj[7])*8
-            soma += int(cnpj[8])*7
-            soma += int(cnpj[9])*6
-            soma += int(cnpj[11])*5
-            soma += int(cnpj[12])*4
-            soma += int(cnpj[13])*3
-            soma += int(cnpj[14])*2
-            
+            soma += int(cnpj[0]) * 5
+            soma += int(cnpj[1]) * 4
+            soma += int(cnpj[3]) * 3
+            soma += int(cnpj[4]) * 2
+            soma += int(cnpj[5]) * 9
+            soma += int(cnpj[7]) * 8
+            soma += int(cnpj[8]) * 7
+            soma += int(cnpj[9]) * 6
+            soma += int(cnpj[11]) * 5
+            soma += int(cnpj[12]) * 4
+            soma += int(cnpj[13]) * 3
+            soma += int(cnpj[14]) * 2
+
             resto = soma % 11
             if resto < 2:
                 digito1 = 0
             else:
                 digito1 = 11 - resto
-            
+
             soma = 0
-            soma += int(cnpj[0])*6
-            soma += int(cnpj[1])*5
-            soma += int(cnpj[3])*4
-            soma += int(cnpj[4])*3
-            soma += int(cnpj[5])*2
-            soma += int(cnpj[7])*9
-            soma += int(cnpj[8])*8
-            soma += int(cnpj[9])*7
-            soma += int(cnpj[11])*6
-            soma += int(cnpj[12])*5
-            soma += int(cnpj[13])*4
-            soma += int(cnpj[14])*3
-            soma += int(cnpj[16])*2 
-            
+            soma += int(cnpj[0]) * 6
+            soma += int(cnpj[1]) * 5
+            soma += int(cnpj[3]) * 4
+            soma += int(cnpj[4]) * 3
+            soma += int(cnpj[5]) * 2
+            soma += int(cnpj[7]) * 9
+            soma += int(cnpj[8]) * 8
+            soma += int(cnpj[9]) * 7
+            soma += int(cnpj[11]) * 6
+            soma += int(cnpj[12]) * 5
+            soma += int(cnpj[13]) * 4
+            soma += int(cnpj[14]) * 3
+            soma += int(cnpj[16]) * 2
+
             resto = soma % 11
             if resto < 2:
                 digito2 = 0
@@ -91,90 +92,105 @@ def CNPJValidator(value):
             return str(digito1) + str(digito2)
 
     def validate(digits, value):
-        return digits == ( value[16] + value[17] ) 
+        return digits == (value[16] + value[17])
 
     digits = generate_digits(value)
     if not validate(digits, value):
-        raise exceptions.ValidationError( _(u'The CNPJ '+value+' is not valid (right digits for testing purpose: '+digits+').') )  
-    
+        raise exceptions.ValidationError(
+            _(u'The CNPJ ' + value + ' is not valid (right digits for testing purpose: ' + digits + ').'))
 
 
 class BradescoBilletDataAdminForm(forms.ModelForm):
 
-    cedente_cnpj = fields.CNPJField(widget = forms.TextInput(attrs={"mask": "99.999.999/9999-99",}))#, validators=[CNPJValidator]  )
-    sacadoravalista_cnpj = fields.CNPJField(widget = forms.TextInput(attrs={"mask": "99.999.999/9999-99",}))#, validators=[CNPJValidator] )
-    enderecosacaval_cep = forms.CharField(widget = forms.TextInput(attrs={"mask": "99999-999",}) )
-    contabancaria_numerodaconta = forms.CharField(widget = forms.TextInput(attrs={"mask": "999999",}) )
-    contabancaria_numerodaconta_digito = forms.CharField(widget = forms.TextInput(attrs={"mask": "9",}) )
-    contabancaria_agencia = forms.CharField(widget = forms.TextInput(attrs={"mask": "9999",}) )
-    contabancaria_agencia_digito = forms.CharField(widget = forms.TextInput(attrs={"mask": "9",}) )
+    cedente_cnpj = fields.CNPJField(widget=forms.TextInput(
+        attrs={"mask": "99.999.999/9999-99", }))  # , validators=[CNPJValidator]  )
+    sacadoravalista_cnpj = fields.CNPJField(widget=forms.TextInput(
+        attrs={"mask": "99.999.999/9999-99", }))  # , validators=[CNPJValidator] )
+    enderecosacaval_cep = forms.CharField(
+        widget=forms.TextInput(attrs={"mask": "99999-999", }))
+    contabancaria_numerodaconta = forms.CharField(
+        widget=forms.TextInput(attrs={"mask": "999999", }))
+    contabancaria_numerodaconta_digito = forms.CharField(
+        widget=forms.TextInput(attrs={"mask": "9", }))
+    contabancaria_agencia = forms.CharField(
+        widget=forms.TextInput(attrs={"mask": "9999", }))
+    contabancaria_agencia_digito = forms.CharField(
+        widget=forms.TextInput(attrs={"mask": "9", }))
     #titulo_digitodonossonumero = forms.CharField(widget = forms.TextInput(attrs={"mask": "9",}) )
-    
-    
+
     #titulo_nossonumero = models.CharField(max_length=20, null=False, blank=False, validators=[MinLengthValidator(11)])
     cedente_nome = models.CharField(max_length=255, null=False, blank=False)
-    sacadoravalista_nome = models.CharField(max_length=255, null=False, blank=False)
-    enderecosacaval_bairro = models.CharField(max_length=255, null=False, blank=False)
-    enderecosacaval_logradouro = models.CharField(max_length=255, null=False, blank=False)
-    enderecosacaval_numero = models.CharField(max_length=20, null=False, blank=False)
+    sacadoravalista_nome = models.CharField(
+        max_length=255, null=False, blank=False)
+    enderecosacaval_bairro = models.CharField(
+        max_length=255, null=False, blank=False)
+    enderecosacaval_logradouro = models.CharField(
+        max_length=255, null=False, blank=False)
+    enderecosacaval_numero = models.CharField(
+        max_length=20, null=False, blank=False)
     enderecosacaval_uf = models.ForeignKey(State, null=False, blank=False)
-    enderecosacaval_localidade = ChainedForeignKey(City, chained_field='enderecosacaval_uf', chained_model_field='state', null=False, blank=False)
-    contabancaria_carteira = models.PositiveIntegerField(null=False, blank=False, validators=[MaxValueValidator(99)])
+    enderecosacaval_localidade = ChainedForeignKey(
+        City, chained_field='enderecosacaval_uf', chained_model_field='state', null=False, blank=False)
+    contabancaria_carteira = models.PositiveIntegerField(
+        null=False, blank=False, validators=[MaxValueValidator(99)])
     cedente_nome.verbose_name = _("Seller's name")
     cedente_nome.help_text = _("Seller (company that will receive the money).")
     cedente_cnpj.label = _("Seller's CNPJ")
     cedente_cnpj.help_text = ""
     sacadoravalista_nome.label = _("Guarantor's name")
-    sacadoravalista_nome.help_text = _("Guarantor (the person that takes responsibility over the transaction).")
+    sacadoravalista_nome.help_text = _(
+        "Guarantor (the person that takes responsibility over the transaction).")
     sacadoravalista_cnpj.label = _("Guarantor's CNPJ")
     sacadoravalista_cnpj.help_text = ""
     enderecosacaval_uf.label = _("State")
     enderecosacaval_uf.help_text = _("State where the the guarantor lives.")
     enderecosacaval_localidade.label = _("City")
-    enderecosacaval_localidade.help_text = _("City where the the guarantor lives.")
+    enderecosacaval_localidade.help_text = _(
+        "City where the the guarantor lives.")
     enderecosacaval_cep.label = _("CEP")
     enderecosacaval_cep.help_text = _("CEP - Postal code")
     enderecosacaval_bairro.label = _("District")
     enderecosacaval_bairro.help_text = _("District where the guarantor lives")
     enderecosacaval_logradouro.label = _("Street")
-    enderecosacaval_logradouro.help_text = _("Street where the guarantor lives.")
+    enderecosacaval_logradouro.help_text = _(
+        "Street where the guarantor lives.")
     enderecosacaval_numero.label = _("Number")
-    enderecosacaval_numero.help_text = _("Number of the house where the guarantor lives.")
+    enderecosacaval_numero.help_text = _(
+        "Number of the house where the guarantor lives.")
     contabancaria_numerodaconta.label = _("Account")
-    contabancaria_numerodaconta.help_text = _("Number of the bank account of the seller.")
+    contabancaria_numerodaconta.help_text = _(
+        "Number of the bank account of the seller.")
     contabancaria_numerodaconta_digito.label = _("Verifier digit")
-    contabancaria_numerodaconta_digito.help_text = _("Verifier digit of the bank account of the seller.")
+    contabancaria_numerodaconta_digito.help_text = _(
+        "Verifier digit of the bank account of the seller.")
     contabancaria_carteira.label = _("Seller's wallet")
     contabancaria_carteira.help_text = _("Seller's bank wallet number")
     contabancaria_agencia.label = _("Agency")
     contabancaria_agencia.help_text = _("Seller's account agency")
     contabancaria_agencia_digito.label = _("Agency digit")
-    contabancaria_agencia_digito.help_text = _("Seller's account agency verifier digit")
+    contabancaria_agencia_digito.help_text = _(
+        "Seller's account agency verifier digit")
     #titulo_nossonumero.label = _("\"Our number\"")
     #titulo_nossonumero.help_text = _("Number registered in Bradesco to register the receiving of billets.")
     #titulo_digitodonossonumero.label = _("\"Our number\" digit")
     #titulo_digitodonossonumero.help_text = _("\"Our number\" digit")
-
 
     class Meta:
         model = BradescoBilletData
 
     class Media:
         js = (
-              settings.MEDIA_URL+"js/jquery.maskedinput-1.1.3.admin.js",
-              settings.MEDIA_URL+"js/boleto.admin.js",
+            settings.MEDIA_URL + "js/jquery.maskedinput-1.1.3.admin.js",
+            settings.MEDIA_URL + "js/boleto.admin.js",
         )
         css = {
-              "all": (settings.MEDIA_URL+"css/boleto.admin.css", )
+            "all": (settings.MEDIA_URL + "css/boleto.admin.css", )
         }
-
-
 
 
 class BradescoBilletDataAdmin(admin.ModelAdmin):
     model = BradescoBilletData
 
-        
     form = BradescoBilletDataAdminForm
     actions = None
 
@@ -184,22 +200,22 @@ class BradescoBilletDataAdmin(admin.ModelAdmin):
     def has_delete_permission(self, request, obj=None):
         return False
 
-    #view para listagem de objetos deste tipo
+    # view para listagem de objetos deste tipo
     def changelist_view(self, request, extra_context=None, **kwargs):
         c = BradescoBilletData.objects.all()[0]
-        return HttpResponseRedirect( reverse('admin:boleto_bradescobilletdata_change', args=(c.id,)) )
+        return HttpResponseRedirect(reverse('admin:boleto_bradescobilletdata_change', args=(c.id,)))
 
     fieldsets = (
-        ( _('Seller'), {
+        (_('Seller'), {
             'fields': ('cedente_nome', 'cedente_cnpj')
         }),
-        ( _('Guarantor'), {
+        (_('Guarantor'), {
             'fields': ('sacadoravalista_nome', 'sacadoravalista_cnpj', 'enderecosacaval_uf',
-                       'enderecosacaval_localidade', 'enderecosacaval_cep', 'enderecosacaval_bairro', 
+                       'enderecosacaval_localidade', 'enderecosacaval_cep', 'enderecosacaval_bairro',
                        'enderecosacaval_logradouro', 'enderecosacaval_numero')
         }),
-        ( _('Bank account'), {
-            'fields': ('contabancaria_numerodaconta', 'contabancaria_numerodaconta_digito', 
+        (_('Bank account'), {
+            'fields': ('contabancaria_numerodaconta', 'contabancaria_numerodaconta_digito',
                        'contabancaria_carteira', 'contabancaria_agencia', 'contabancaria_agencia_digito')
         }),
         #( _('Title'), {
@@ -207,7 +223,7 @@ class BradescoBilletDataAdmin(admin.ModelAdmin):
         #}),
     )
 
-    #formfield_overrides = {
+    # formfield_overrides = {
     #    models.TextField: {'widget': RichTextEditorWidget},
     #}
 
@@ -286,12 +302,12 @@ class ReturnFileAdminForm(forms.ModelForm):
     #    #    raise Exception(ret.header_data_credito)
     #    super(ReturnFileAdminForm, self).save(commit)'''
 
-      
+
 class ReturnFileAdmin(admin.ModelAdmin):
     #inlines = [DetailLineInline, ]
     #form = ReturnFileAdminForm
     model = ReturnFile
-    #def save_model(self, request, obj, form, change):
+    # def save_model(self, request, obj, form, change):
     #    #raise Exception(obj)
     #    obj.save()
 

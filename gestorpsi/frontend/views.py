@@ -25,6 +25,7 @@ from gestorpsi.referral.models import Queue
 
 from gestorpsi.settings import ADMIN_URL
 
+
 def start(request):
 
     # admin do not have profile
@@ -35,23 +36,28 @@ def start(request):
 
     date = datetime.now()
 
-    #code for testing the charging system
+    # code for testing the charging system
     #from gestorpsi.async_tasks.tasks import check_and_charge
-    #check_and_charge()
+    # check_and_charge()
 
     """ user's client home page """
     if request.user.get_profile().person.is_client():
-        object = Client.objects.get(pk=request.user.get_profile().person.client.id)
+        object = Client.objects.get(
+            pk=request.user.get_profile().person.client.id)
         return render_to_response('frontend/frontend_client_start.html', locals(), context_instance=RequestContext(request))
-    
+
     """ user's professional and student home page """
     if request.user.get_profile().person.is_careprofessional() or request.user.get_profile().person.is_student():
-        object = CareProfessional.objects.get(pk=request.user.get_profile().person.careprofessional.id)
-        events = schedule_occurrences(request, datetime.now().strftime('%Y'), datetime.now().strftime('%m'), datetime.now().strftime('%d')).filter(event__referral__professional=object)
-        referrals = object.referral_set.filter(status='01').order_by('-date')[:10]
-        queues = Queue.objects.filter(referral__professional=object, date_out=None).order_by('priority','date_in')
+        object = CareProfessional.objects.get(
+            pk=request.user.get_profile().person.careprofessional.id)
+        events = schedule_occurrences(request, datetime.now().strftime('%Y'), datetime.now().strftime(
+            '%m'), datetime.now().strftime('%d')).filter(event__referral__professional=object)
+        referrals = object.referral_set.filter(
+            status='01').order_by('-date')[:10]
+        queues = Queue.objects.filter(
+            referral__professional=object, date_out=None).order_by('priority', 'date_in')
         return render_to_response('frontend/frontend_careprofessional_start.html', locals(), context_instance=RequestContext(request))
-    
+
     """ user's employee home page """
     if request.user.get_profile().person.is_employee():
         """ items to be added in secretary home page:
@@ -61,5 +67,3 @@ def start(request):
         return HttpResponseRedirect('/schedule/events/')
 
     raise Http404
-
-

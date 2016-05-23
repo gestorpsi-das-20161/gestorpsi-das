@@ -19,23 +19,41 @@ from gestorpsi.employee.views import index, form, save, list, order
 from gestorpsi.authentication.views import login_check
 
 urlpatterns = patterns('',
-    (r'^$', login_check(index), {'deactive':False}), # list objects active
-    (r'^page(?P<page>(\d)+)/$', login_check(list), {'deactive':False}), #list objects
-    (r'^add/$', login_check(form)), # new object form
-    (r'^(?P<object_id>[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})/$', login_check(form)), # edit object form
-    (r'^(?P<object_id>[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})/order/$', login_check(order)), # edit object form
-    (r'^save/$', login_check(save)), # save new object
-    (r'^(?P<object_id>[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})/save/$', login_check(save)), # update object
+                       # list objects active
+                       (r'^$', login_check(index), {'deactive': False}),
+                       (r'^page(?P<page>(\d)+)/$', login_check(list),
+                        {'deactive': False}),  # list objects
+                       (r'^add/$', login_check(form)),  # new object form
+                       # edit object form
+                       (r'^(?P<object_id>[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})/$', login_check(
+                           form)),
+                       # edit object form
+                       (r'^(?P<object_id>[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})/order/$', login_check(
+                           order)),
+                       (r'^save/$', login_check(save)),  # save new object
+                       # update object
+                       (r'^(?P<object_id>[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})/save/$', login_check(
+                           save)),
 
-    (r'^initial/(?P<initial>[a-zA-Z])/page(?P<page>(\d)+)/$', login_check(list)), # quick filter
-    (r'^filter/(?P<filter>[a-zA-Z ]+)/page(?P<page>(\d)+)/$', login_check(list)), # quick search
-    (r'^filter/(?P<filter>[a-zA-Z ]+)/$', login_check(list), {'no_paging': True}), # quick search
+                       # quick filter
+                       (r'^initial/(?P<initial>[a-zA-Z])/page(?P<page>(\d)+)/$',
+                           login_check(list)),
+                       (r'^filter/(?P<filter>[a-zA-Z ]+)/page(?P<page>(\d)+)/$',
+                           login_check(list)),  # quick search
+                       (r'^filter/(?P<filter>[a-zA-Z ]+)/$', login_check(list),
+                           {'no_paging': True}),  # quick search
 
-    # DEACTIVE
-    (r'^initial/(?P<initial>[a-zA-Z])/page(?P<page>(\d)+)/deactive/$', login_check(list), {'deactive':True} ), # quick filter
-    (r'^initial/(?P<initial>[a-zA-Z])/deactive/$', login_check(list), {'deactive':True} ), # quick filter
-    (r'^filter/(?P<filter>[a-zA-Z]+)/page(?P<page>(\d)+)/deactive/$', login_check(list), {'deactive':True} ), # quick search
-    (r'^filter/(?P<filter>[a-zA-Z]+)/deactive/$', login_check(list), {'no_paging': True, 'deactive':True } ), # quick search
-    (r'^deactive/$', login_check(index), {'deactive':True}), # list objects deactive
-    (r'^page(?P<page>(\d)+)/deactive/$', login_check(list), {'deactive':True}), #list objects
-)
+                       # DEACTIVE
+                       (r'^initial/(?P<initial>[a-zA-Z])/page(?P<page>(\d)+)/deactive/$',
+                           login_check(list), {'deactive': True}),  # quick filter
+                       (r'^initial/(?P<initial>[a-zA-Z])/deactive/$',
+                           login_check(list), {'deactive': True}),  # quick filter
+                       (r'^filter/(?P<filter>[a-zA-Z]+)/page(?P<page>(\d)+)/deactive/$',
+                           login_check(list), {'deactive': True}),  # quick search
+                       (r'^filter/(?P<filter>[a-zA-Z]+)/deactive/$', login_check(list),
+                           {'no_paging': True, 'deactive': True}),  # quick search
+                       (r'^deactive/$', login_check(index),
+                           {'deactive': True}),  # list objects deactive
+                       (r'^page(?P<page>(\d)+)/deactive/$', login_check(list),
+                           {'deactive': True}),  # list objects
+                       )

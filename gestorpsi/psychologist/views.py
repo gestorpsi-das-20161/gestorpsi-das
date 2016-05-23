@@ -23,33 +23,33 @@ GNU General Public License for more details.
 
 # Save or Update psychpsychologistologist object
 #@permission_required_with_403('careprofessional.careprofessional_write')
-#def save(request, object_id=''):    
+# def save(request, object_id=''):
 
-    #try:
-     #   object = get_object_or_404(Psychologist, pk=object_id)        
-    #except Http404:
-     #   object = Psychologist()
+# try:
+#   object = get_object_or_404(Psychologist, pk=object_id)
+# except Http404:
+#   object = Psychologist()
 
-    #object = care_professional_fill(request, object)
-    #object.save()
+#object = care_professional_fill(request, object)
+# object.save()
 
-    #messages.success(request, _('Professional saved successfully'))
+#messages.success(request, _('Professional saved successfully'))
 
-    #return HttpResponseRedirect('/careprofessional/%s/' % object.id)
+# return HttpResponseRedirect('/careprofessional/%s/' % object.id)
 
 
 # disable a psychologist
 #@permission_required_with_403('careprofessional.careprofessional_write')
-#def delete(request, object_id):
-    #"""
-    #This function view search for a psychologist which has the id equals to the C{int} (I{psychologist_id})
-    #passed as parameter and change the field I{active} to "False' 
-    #@param request: this is a request sent by the browser.
-    #@type request: an instance of the class C{HttpRequest} created by the framework Django.
-    #@param object_id: represents the I{id} of the psychologist to be deleted.
-    #@type object_id: an instance of the built-in class C{int}.
-    #"""
-   # object = get_object_or_404(Psychologist, pk=object_id)
-   # object.active = False
-   # object.save()    
-   # return HttpResponse()
+# def delete(request, object_id):
+#"""
+# This function view search for a psychologist which has the id equals to the C{int} (I{psychologist_id})
+# passed as parameter and change the field I{active} to "False'
+#@param request: this is a request sent by the browser.
+#@type request: an instance of the class C{HttpRequest} created by the framework Django.
+#@param object_id: represents the I{id} of the psychologist to be deleted.
+#@type object_id: an instance of the built-in class C{int}.
+#"""
+# object = get_object_or_404(Psychologist, pk=object_id)
+# object.active = False
+# object.save()
+# return HttpResponse()

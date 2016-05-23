@@ -20,8 +20,9 @@ from django.utils.translation import ugettext as _
 from gestorpsi.organization.models import Organization, AgeGroup, EducationLevel, HierarchicalLevel
 from gestorpsi.careprofessional.models import CareProfessional, Profession
 from gestorpsi.client.models import Client
-from gestorpsi.util.uuid_field import UuidField 
+from gestorpsi.util.uuid_field import UuidField
 from gestorpsi.covenant.models import Covenant
+
 
 class ServiceType(models.Model):
     name = models.CharField(max_length=100)
@@ -33,23 +34,29 @@ class ServiceType(models.Model):
     class Meta:
         ordering = ['name']
 
+
 class Modality(models.Model):
-    name= models.CharField(max_length=100)
-    
+    name = models.CharField(max_length=100)
+
     def __unicode__(self):
         return u'%s' % self.name
 
     class Meta:
         ordering = ['name']
 
+
 class Area(models.Model):
-    area_name = models.CharField(_('Area Name'), max_length=100, blank=True, null=True)
-    area_code = models.CharField(_('Area Code'), max_length=30, blank=True, null=True)
+    area_name = models.CharField(
+        _('Area Name'), max_length=100, blank=True, null=True)
+    area_code = models.CharField(
+        _('Area Code'), max_length=30, blank=True, null=True)
     service_type = models.ManyToManyField(ServiceType, null=True, blank=True)
     modalities = models.ManyToManyField(Modality, null=True, blank=True)
     age_group = models.ManyToManyField(AgeGroup, null=True, blank=True)
-    education_level = models.ManyToManyField(EducationLevel, null=True, blank=True)
-    hierarchical_level = models.ManyToManyField(HierarchicalLevel, null=True, blank=True)
+    education_level = models.ManyToManyField(
+        EducationLevel, null=True, blank=True)
+    hierarchical_level = models.ManyToManyField(
+        HierarchicalLevel, null=True, blank=True)
 
     def __unicode__(self):
         return u"%s" % self.area_name
@@ -57,11 +64,15 @@ class Area(models.Model):
     class Meta:
         ordering = ['area_name']
 
+
 class ServiceManager(models.Manager):
+
     def active(self):
         return super(ServiceManager, self).get_query_set().filter(active=True)
+
     def deactive(self):
         return super(ServiceManager, self).get_query_set().filter(active=False)
+
 
 class Service(models.Model):
     """
@@ -78,25 +89,30 @@ class Service(models.Model):
     area = models.ForeignKey(Area)
     service_type = models.ForeignKey(ServiceType)
     modalities = models.ManyToManyField(Modality)
-    
+
     age_group = models.ManyToManyField(AgeGroup, null=True, blank=True)
-    education_level = models.ManyToManyField(EducationLevel, null=True, blank=True)
-    hierarchical_level = models.ManyToManyField(HierarchicalLevel, null=True, blank=True)
-    
+    education_level = models.ManyToManyField(
+        EducationLevel, null=True, blank=True)
+    hierarchical_level = models.ManyToManyField(
+        HierarchicalLevel, null=True, blank=True)
+
     professions = models.ManyToManyField(Profession)
-    research_project = models.BooleanField(default=False) 
+    research_project = models.BooleanField(default=False)
     research_project_name = models.CharField(max_length=500)
     organization = models.ForeignKey(Organization, null=True)
-    responsibles = models.ManyToManyField( CareProfessional, related_name="resp_services" )
-    professionals = models.ManyToManyField( CareProfessional, related_name="prof_services" )
+    responsibles = models.ManyToManyField(
+        CareProfessional, related_name="resp_services")
+    professionals = models.ManyToManyField(
+        CareProfessional, related_name="prof_services")
     date = models.DateTimeField(auto_now_add=True)
     comments = models.TextField(blank=True)
-    academic_related = models.BooleanField(_('Academic (supervised) related service'), default=False)
+    academic_related = models.BooleanField(
+        _('Academic (supervised) related service'), default=False)
     is_online = models.BooleanField(default=False)
-    color = models.CharField(_('Color'), max_length=6, null=True, help_text=_('Color in HEX Format. Ex: 662393'), default=0)
+    color = models.CharField(_('Color'), max_length=6, null=True, help_text=_(
+        'Color in HEX Format. Ex: 662393'), default=0)
     covenant = models.ManyToManyField(Covenant, null=True, blank=True)
     objects = ServiceManager()
-
 
     def __unicode__(self):
         u = u"%s" % (self.name)
@@ -108,7 +124,7 @@ class Service(models.Model):
         if self.is_group:
             return u'%s (grupo)' % self.name
         return u'%s' % self.name
-    
+
     def _name_html(self):
         return u"<div class='service_name_html' style='background-color:#%s;'>&nbsp;</div> %s" % (self.color, self.name)
     name_html = property(_name_html)
@@ -133,12 +149,8 @@ class Service(models.Model):
             ("service_write", "Can write services"),
         )
 
-
-
     def revision(self):
         return reversion.get_for_object(self).order_by('-revision__date_created').latest('revision__date_created').revision
-
-
 
     def save(self, *args, **kwargs):
 
@@ -147,23 +159,23 @@ class Service(models.Model):
             int(string) == erro, using try and except
         '''
         try:
-            if not int(self.color,16) < 16777216 :
-                self.color = 'ffffff' # white
+            if not int(self.color, 16) < 16777216:
+                self.color = 'ffffff'  # white
         except:
-            self.color = 'ffffff' # white
-            
-        super(Service, self).save(*args, **kwargs)
+            self.color = 'ffffff'  # white
 
+        super(Service, self).save(*args, **kwargs)
 
 
 class ServiceGroup(models.Model):
     id = UuidField(primary_key=True)
     service = models.ForeignKey(Service, null=False, blank=False)
-    members = models.ManyToManyField(Client, null=True, blank=True, through='GroupMembers')
+    members = models.ManyToManyField(
+        Client, null=True, blank=True, through='GroupMembers')
     description = models.CharField(max_length=100)
     comments = models.TextField(blank=True)
     active = models.BooleanField(default=True)
-    
+
     def __unicode__(self):
         return u'%s' % (self.description)
 
@@ -181,11 +193,12 @@ class ServiceGroup(models.Model):
     def revision(self):
         return reversion.get_for_object(self).order_by('-revision__date_created').latest('revision__date_created').revision
 
+
 class GroupMembers(models.Model):
     group = models.ForeignKey(ServiceGroup)
     client = models.ForeignKey(Client)
     referral = models.ForeignKey('referral.Referral')
-    
+
     def __unicode__(self):
         return u'%s' % (self.client)
 

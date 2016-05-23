@@ -24,8 +24,10 @@ GNU General Public License for more details.
 from django.contrib import admin
 from gestorpsi.sponsor.models import Sponsor, TaxWithHold
 
+
 class TaxWithHoldAdmin(admin.ModelAdmin):
     pass
+
 
 class SponsorAdmin(admin.ModelAdmin):
     pass

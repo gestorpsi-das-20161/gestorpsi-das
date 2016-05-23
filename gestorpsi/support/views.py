@@ -22,6 +22,7 @@ from django.template.context import RequestContext
 from gestorpsi.support.forms import TicketForm
 from gestorpsi.settings import EMAIL_FROM, ADMINS_REGISTRATION
 
+
 def ticket_form(request):
     if request.method == 'POST':
         form = TicketForm(request.POST, request.FILES)
@@ -29,8 +30,10 @@ def ticket_form(request):
             new = form.save(commit=False)
             new.user = request.user.profile.person
             new.save()
-            body = ('%s\n\n%s\n%s\n%s') % (request.POST['question'], request.POST['contact_name'], request.POST['contact_phone'], request.POST['contact_email'] )
-            email = EmailMessage(_('[GestorPsi] Support Request'), body, EMAIL_FROM , ADMINS_REGISTRATION, headers = {'Reply-To': request.POST['contact_email']} )
+            body = ('%s\n\n%s\n%s\n%s') % (request.POST['question'], request.POST[
+                'contact_name'], request.POST['contact_phone'], request.POST['contact_email'])
+            email = EmailMessage(_('[GestorPsi] Support Request'), body, EMAIL_FROM, ADMINS_REGISTRATION, headers={
+                                 'Reply-To': request.POST['contact_email']})
 
             try:
                 email.send()
@@ -39,9 +42,9 @@ def ticket_form(request):
                 return HttpResponse('Error on sending mail')
     else:
         initial = {
-            'contact_name' : request.user.profile.person.name,
-            'contact_phone' : request.user.profile.person.get_first_phone(),
-            'contact_email' : request.user.profile.person.get_first_email(),
-            }
+            'contact_name': request.user.profile.person.name,
+            'contact_phone': request.user.profile.person.get_first_phone(),
+            'contact_email': request.user.profile.person.get_first_email(),
+        }
         form = TicketForm(initial)
     return render_to_response('support/ticket_form.html', locals(), context_instance=RequestContext(request))

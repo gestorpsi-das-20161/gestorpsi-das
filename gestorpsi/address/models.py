@@ -20,31 +20,41 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
 from gestorpsi.util.uuid_field import UuidField
 
+
 class Country(models.Model):
     name = models.CharField(max_length=50)
     nationality = models.CharField(max_length=50)
+
     def __unicode__(self):
         return u"%s" % self.name
+
     class Meta:
         ordering = ['name']
+
 
 class State(models.Model):
     name = models.CharField(max_length=50)
     shortName = models.CharField(max_length=2)
     country = models.ForeignKey(Country)
+
     def __unicode__(self):
         return u"%s" % self.name
+
     class Meta:
         ordering = ['name']
+
 
 class City(models.Model):
     ibge_code = models.CharField(max_length=10)
     name = models.CharField(max_length=50)
     state = models.ForeignKey(State)
+
     def __unicode__(self):
         return u"%s" % (self.name)
+
     class Meta:
         ordering = ['name']
+
 
 class AddressType(models.Model):
     description = models.CharField(max_length=20)
@@ -56,9 +66,10 @@ class AddressType(models.Model):
     class Meta:
         ordering = ['weight']
 
+
 class Address(models.Model):
     # Brazil Address
-    id= UuidField( primary_key= True )
+    id = UuidField(primary_key=True)
     addressPrefix = models.CharField(max_length=10)
     addressLine1 = models.CharField(max_length=50, blank=True)
     addressLine2 = models.CharField(max_length=50, blank=True)
@@ -69,13 +80,13 @@ class Address(models.Model):
     city = models.ForeignKey(City, null=True)
     # Foreign Address
     foreignCountry = models.ForeignKey(Country, null=True)
-    foreignState   = models.CharField(max_length=20, blank=True)
-    foreignCity    = models.CharField(max_length=50, blank=True)
+    foreignState = models.CharField(max_length=20, blank=True)
+    foreignCity = models.CharField(max_length=50, blank=True)
     # Generic Relationship
     content_type = models.ForeignKey(ContentType)
     object_id = models.CharField(max_length=36)
     content_object = generic.GenericForeignKey()
-    
+
     def __cmp__(self, other):
         if (self.addressPrefix == other.addressPrefix) and \
            (self.addressLine1 == other.addressLine1) and \
@@ -90,14 +101,15 @@ class Address(models.Model):
            (self.foreignCity == other.foreignCity):
             return 0
         else:
-            return 1    
-    
+            return 1
+
     def __unicode__(self):
-        return u"%s %s %s %s<br />%s %s %s %s %s (%s)" % (\
-            self.addressPrefix, self.addressLine1, self.addressNumber, self.addressLine2, \
-            self.zipCode, self.neighborhood, self.city, '' if not hasattr(self.city, 'state') else self.city.state.shortName, '' if not hasattr(self.city, 'state') else self.city.state.country, self.addressType\
+        return u"%s %s %s %s<br />%s %s %s %s %s (%s)" % (
+            self.addressPrefix, self.addressLine1, self.addressNumber, self.addressLine2,
+            self.zipCode, self.neighborhood, self.city, '' if not hasattr(self.city, 'state') else self.city.state.shortName, '' if not hasattr(
+                self.city, 'state') else self.city.state.country, self.addressType
         )
-    
+
     def __empty__(self):
         return ''
     area = property(__empty__)

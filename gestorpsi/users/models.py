@@ -1,6 +1,8 @@
 from django.contrib.auth.models import User
+
+
 class Users(User):
-    
+
     class Meta:
         permissions = (
             ("user_add", "Can add users"),
@@ -8,6 +10,6 @@ class Users(User):
             ("user_list", "Can list users"),
             ("user_write", "Can write users"),
         )
-        
+
 
 # Create your models here.

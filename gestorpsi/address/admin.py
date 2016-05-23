@@ -24,7 +24,8 @@ GNU General Public License for more details.
 from django.contrib import admin
 from gestorpsi.address.models import AddressType
 
+
 class AddressTypeAdmin(admin.ModelAdmin):
     pass
 
-admin.site.register(AddressType, AddressTypeAdmin) 
+admin.site.register(AddressType, AddressTypeAdmin)
