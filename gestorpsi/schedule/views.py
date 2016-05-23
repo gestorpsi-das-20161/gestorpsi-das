@@ -26,7 +26,6 @@ from django.utils import simplejson
 from django.db.models import Q
 from django.contrib import messages
 from swingtime.utils import create_timeslot_table
-
 from gestorpsi.schedule.models import ScheduleOccurrence, OccurrenceConfirmation, OccurrenceFamily, OccurrenceEmployees
 from gestorpsi.referral.models import Referral
 from gestorpsi.referral.forms import ReferralForm
@@ -336,29 +335,8 @@ def occurrence_confirmation_form_group(
         if denied_to_write:
             return render_to_response('403.html', {'object': _("Oops! You don't have access for this service!"), }, context_instance=RequestContext(request))
 
-
-        # new payment form, not required.
-        if not request.POST.get('select_covenant_receive') == '000' :
-
-            covenant = Covenant.objects.get( pk=request.POST.get('select_covenant_receive'), organization=request.user.get_profile().org_active )
-
-            prefix = 'receive_form---TEMPID999FORM' # hardcore Jquery
-            form_receive_new = ReceiveFormNew(request.POST, prefix=prefix)
-
-            if form_receive_new.is_valid():
-
-                form_payment = form_receive_new.save()
-                form_payment.occurrence.add(occurrence)
-
-                # from covenant
-                form_payment.covenant_payment_way_options = ''
-                for pw in covenant.payment_way.all():
-                    x = "(%s,'%s')," % ( pw.id , pw.name ) # need be a dict
-                    form_payment.covenant_payment_way_options += x
-
-                form_payment.covenant_payment_way_selected = request.POST.getlist('TEMPID999FORM-pw')
-                form_payment.save()
-
+        # Calls method to create new payment form.
+        create_new_payment_form()   
 
         # update payments, not required.
         for x in Receive.objects.filter(occurrence=occurrence):
@@ -424,19 +402,43 @@ def occurrence_confirmation_form_group(
     return render_to_response(
         template,
         dict(
-                occurrence=occurrence,
-                form=form,
-                object=object,
-                referral=occurrence.event.referral,
-                occurrence_confirmation=occurrence_confirmation,
-                hide_date_field=True if occurrence_confirmation and int(occurrence_confirmation.presence) > 2 else None,
+                occurrence = occurrence,
+                form = form,
+                object = object,
+                referral = occurrence.event.referral,
+                occurrence_confirmation = occurrence_confirmation,
+                hide_date_field = True if occurrence_confirmation and int(occurrence_confirmation.presence) > 2 else None,
                 denied_to_write = denied_to_write,
                 receive_list = receive_list,
                 covenant_list = covenant_list,
-                receive_new_form = ReceiveFormNew(prefix='receive_form---TEMPID999FORM'),
+                receive_new_form = ReceiveFormNew(prefix = 'receive_form---TEMPID999FORM'),
             ),
-        context_instance=RequestContext(request)
+        context_instance = RequestContext(request)
     )
+
+def create_new_payment_form():
+
+    # new payment form, not required.
+    if not request.POST.get('select_covenant_receive') == '000' :
+
+        covenant = Covenant.objects.get( pk=request.POST.get('select_covenant_receive'), organization=request.user.get_profile().org_active )
+
+        prefix = 'receive_form---TEMPID999FORM' # hardcore Jquery
+        form_receive_new = ReceiveFormNew(request.POST, prefix=prefix)
+
+        if form_receive_new.is_valid():
+
+            form_payment = form_receive_new.save()
+            form_payment.occurrence.add(occurrence)
+
+            # from covenant
+            form_payment.covenant_payment_way_options = ''
+            for pw in covenant.payment_way.all():
+                x = "(%s,'%s')," % ( pw.id , pw.name ) # need be a dict
+                form_payment.covenant_payment_way_options = form_payment.covenant_payment_way_options + x
+
+            form_payment.covenant_payment_way_selected = request.POST.getlist('TEMPID999FORM-pw')
+            form_payment.save()
 
 
 
