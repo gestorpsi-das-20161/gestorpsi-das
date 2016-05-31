@@ -74,7 +74,6 @@ def schedule_occurrence_listing(
         dict(
             extra_context,
             occurrences=occurrences,
-<<<<<<< HEAD
             places_list = Place.objects.active().filter(
                 organization=request.user.get_profile().org_active.id),
             services = Service.objects.active().filter(
@@ -83,16 +82,6 @@ def schedule_occurrence_listing(
                 request.user.get_profile().org_active.id),
             tab_event_class = 'active',
             ),
-=======
-            places_list=Place.objects.active().filter(
-                organization=request.user.get_profile().org_active.id),
-            services=Service.objects.active().filter(
-                organization=request.user.get_profile().org_active.id),
-            professionals=CareProfessional.objects.active(
-                request.user.get_profile().org_active.id),
-            tab_event_class='active',
-        ),
->>>>>>> 5c144e06b2ef8e226f9f75d22ab0b8e814821c79
         context_instance=RequestContext(request)
     )
 
@@ -108,21 +97,13 @@ def schedule_occurrence_listing_today(
 
 @permission_required_with_403('schedule.schedule_write')
 def add_event(
-<<<<<<< HEAD
-        request,
-        template='schedule/schedule_form.html',
-        event_form_class=ReferralForm,
-        recurrence_form_class=ScheduleOccurrenceForm,
-        redirect_to = None
-    ):
-=======
     request,
     template='schedule/schedule_form.html',
     event_form_class=ReferralForm,
     recurrence_form_class=ScheduleOccurrenceForm,
     redirect_to=None
 ):
->>>>>>> 5c144e06b2ef8e226f9f75d22ab0b8e814821c79
+
 
     # have to contains dtstart variable in URL. URL from schedule have to
     # contains date and time data.
@@ -139,19 +120,6 @@ def add_event(
 
             if not request.POST.get('group'):  # booking single client
 
-<<<<<<< HEAD
-                referral = get_object_or_404(
-                    Referral, pk=request.POST.get('referral'),
-                    service__organization=request.user.get_profile().org_active)
-                event = recurrence_form.save(referral)
-
-            else: # booking a group
-                group = get_object_or_404(
-                    ServiceGroup, pk=request.POST.get('group'),
-                    service__organization=request.user.get_profile().org_active, active=True)
-                # this check is already done in template. just to prevent empty groups
-                if group.charged_members():
-=======
                 referral = get_object_or_404(Referral, pk=request.POST.get(
                     'referral'), service__organization=request.user.get_profile().org_active)
                 event = recurrence_form.save(referral)
@@ -160,7 +128,7 @@ def add_event(
                 group = get_object_or_404(ServiceGroup, pk=request.POST.get(
                     'group'), service__organization=request.user.get_profile().org_active, active=True)
                 if group.charged_members():  # this check is already done in template. just to prevent empty groups
->>>>>>> 5c144e06b2ef8e226f9f75d22ab0b8e814821c79
+
                     first = True
                     for group_member in group.charged_members():
                         if first:
@@ -169,11 +137,7 @@ def add_event(
                         else:
                             if not event.errors:
                                 event = recurrence_form.save(
-<<<<<<< HEAD
-                                group_member.referral, True) # ignore busy check
-=======
                                     group_member.referral, True)  # ignore busy check
->>>>>>> 5c144e06b2ef8e226f9f75d22ab0b8e814821c79
 
             if not request.POST.get('group'):  # booking single client
                 '''
@@ -184,17 +148,10 @@ def add_event(
                 for occurrence_payment in referral.upcoming_nopayment_occurrences_():
 
                     # exist a payment for event?
-<<<<<<< HEAD
-                    if Receive.objects.filter(occurrence=occurrence_payment).count() == 0 :
-
-                        # Filter payment by pack or occurrence
-                        for payment_filter in referral.covenant.filter(Q(charge=1) | Q(charge=2) ).distinct():
-=======
                     if Receive.objects.filter(occurrence=o).count() == 0:
 
                         # Filter payment by pack or occurrence
                         for x in referral.covenant.filter(Q(charge=1) | Q(charge=2)).distinct():
->>>>>>> 5c144e06b2ef8e226f9f75d22ab0b8e814821c79
 
                             receive = Receive()  # new
 
@@ -222,16 +179,10 @@ def add_event(
 
                                 # clear all
                                 receive.covenant_payment_way_options = ''
-<<<<<<< HEAD
-                                for payment_way in payment_filter.payment_way.all():
-                                    payment_filter = "(%s,'%s')," % ( payment_way.id , payment_way.name ) # need be a dict
-                                    receive.covenant_payment_way_options += payment_filter
-=======
                                 for pw in x.payment_way.all():
                                     x = "(%s,'%s')," % (
                                         pw.id, pw.name)  # need be a dict
                                     receive.covenant_payment_way_options += x
->>>>>>> 5c144e06b2ef8e226f9f75d22ab0b8e814821c79
 
                             # add occurrence
                             receive.occurrence.add(occurrence_payment)
@@ -251,44 +202,6 @@ def add_event(
     # mount form or return form errors
 
     # get from url
-<<<<<<< HEAD
-    dtstart = parser.parse( request.GET['dtstart'] )
-    room = get_object_or_None(
-        Room, pk=request.GET.get('room'),
-        place__organization=request.user.get_profile().org_active)
-    client = get_object_or_None(
-        Client, pk=request.GET.get('client'),
-        person__organization=request.user.get_profile().org_active)
-    referral = get_object_or_None(
-        Referral, pk=request.GET.get('referral'),
-        service__organization=request.user.get_profile().org_active)
-    event_form = event_form_class
-
-    recurrence_form = recurrence_form_class( request,
-                                             initial = dict(
-                                                            dtstart=dtstart,
-                                                            day=datetime.strptime(dtstart.strftime("%Y-%m-%d"), "%Y-%m-%d"),
-                                                            until=datetime.strptime(dtstart.strftime("%Y-%m-%d"), "%Y-%m-%d"),
-                                                            room=room.id,
-                                                        )
-    )
-
-    recurrence_form.fields['device'].widget.choices = [(i.id, i) for i in DeviceDetails.objects.active(request.user.get_profile().org_active).filter(Q(room=room) | Q(mobility="2", lendable=True) | Q(place=room.place, mobility="2", lendable=False))]
-
-    return render_to_response( template,
-                               dict(
-                                        dtstart = dtstart,
-                                        event_form = event_form,
-                                        recurrence_form = recurrence_form,
-                                        group = ServiceGroup.objects.filter(service__organization = request.user.get_profile().org_active, active=True),
-                                        room = room,
-                                        object = client,
-                                        referral = referral,
-                                        room_id = room.id,
-                                    ),
-                                context_instance=RequestContext(request)
-    )
-=======
     dtstart = parser.parse(request.GET['dtstart'])
     room = get_object_or_None(Room, pk=request.GET.get(
         'room'), place__organization=request.user.get_profile().org_active)
@@ -326,8 +239,6 @@ def add_event(
                               ),
                               context_instance=RequestContext(request)
                               )
->>>>>>> 5c144e06b2ef8e226f9f75d22ab0b8e814821c79
-
 
 @permission_required_with_403('schedule.schedule_read')
 def event_view(
@@ -339,12 +250,7 @@ def event_view(
 ):
 
     event = get_object_or_404(
-<<<<<<< HEAD
-        Referral, pk=pk,
-        service__organization=request.user.get_profile().org_active)
-=======
         Referral, pk=pk, service__organization=request.user.get_profile().org_active)
->>>>>>> 5c144e06b2ef8e226f9f75d22ab0b8e814821c79
     event_form = recurrence_form = None
     if request.method == 'POST':
         if '_update' in request.POST:
@@ -369,14 +275,8 @@ def event_view(
 
     return render_to_response(
         template,
-<<<<<<< HEAD
-        dict(
-            event=event,
-            event_form=event_form, recurrence_form=recurrence_form),
-=======
         dict(event=event, event_form=event_form,
              recurrence_form=recurrence_form),
->>>>>>> 5c144e06b2ef8e226f9f75d22ab0b8e814821c79
         context_instance=RequestContext(request)
     )
 
@@ -416,16 +316,6 @@ def occurrence_view(
 
 @permission_required_with_403('schedule.schedule_write')
 def occurrence_confirmation_form_group(
-<<<<<<< HEAD
-        request,
-        pk,
-        template='schedule/schedule_occurrence_confirmation_form_group.html',
-        form_class=OccurrenceConfirmationForm,
-        client_id = None,
-        redirect_to = None,
-    ):
-
-=======
     request,
     pk,
     template='schedule/schedule_occurrence_confirmation_form_group.html',
@@ -433,7 +323,6 @@ def occurrence_confirmation_form_group(
     client_id=None,
     redirect_to=None,
 ):
->>>>>>> 5c144e06b2ef8e226f9f75d22ab0b8e814821c79
     '''
         confirmation event for a member of group
         choose a covenant of service and create a payment based in covenant
@@ -447,12 +336,8 @@ def occurrence_confirmation_form_group(
     if not occurrence.scheduleoccurrence.was_confirmed():
         initial_device = [device.pk for device in occurrence.device.all()]
     else:
-<<<<<<< HEAD
-        initial_device = [device.pk for device in occurrence.occurrenceconfirmation.device.all()]
-=======
         initial_device = [
             device.pk for device in occurrence.occurrenceconfirmation.device.all()]
->>>>>>> 5c144e06b2ef8e226f9f75d22ab0b8e814821c79
 
     # check if requested user have perms to read it
     if not _access_check_by_occurrence(request, occurrence):
@@ -464,12 +349,8 @@ def occurrence_confirmation_form_group(
     except:
         occurrence_confirmation = None
 
-<<<<<<< HEAD
-    object = get_object_or_None(Client, pk = client_id, person__organization=request.user.get_profile().org_active)
-=======
     object = get_object_or_None(
         Client, pk=client_id, person__organization=request.user.get_profile().org_active)
->>>>>>> 5c144e06b2ef8e226f9f75d22ab0b8e814821c79
 
     from gestorpsi.client.views import _access_check_referral_write
     denied_to_write = None
@@ -490,18 +371,11 @@ def occurrence_confirmation_form_group(
         # update payments, not required.
         for x in Receive.objects.filter(occurrence=occurrence):
 
-<<<<<<< HEAD
-            covenant = Covenant.objects.get( pk=request.POST.get('select_covenant_receive'), organization=request.user.get_profile().org_active )
-
-            pfx = 'receive_form---TEMPID999FORM' # hardcore Jquery
-            form_receive_new = ReceiveFormNew(request.POST, prefix=pfx)
-=======
             prefix = 'receive_form---%s' % x.id  # hardcore Jquery
             form_receive = ReceiveFormUpdate(
                 request.POST, instance=x, prefix=prefix)
 
             receive_list.append(form_receive)
->>>>>>> 5c144e06b2ef8e226f9f75d22ab0b8e814821c79
 
             if form_receive.is_valid():
                 form_payment = form_receive.save()
@@ -535,10 +409,7 @@ def occurrence_confirmation_form_group(
             prefix = 'receive_form---%s' % x.id
             receive_list.append(ReceiveFormUpdate(instance=x, prefix=prefix))
 
-<<<<<<< HEAD
-            pfx = 'receive_form---%s' % x.id # hardcore Jquery
-            form_receive = ReceiveFormUpdate(request.POST, instance=x, prefix=pfx)
-=======
+
     # just one out if errors
     return render_to_response(
         template,
@@ -558,7 +429,6 @@ def occurrence_confirmation_form_group(
         ),
         context_instance=RequestContext(request)
     )
->>>>>>> 5c144e06b2ef8e226f9f75d22ab0b8e814821c79
 
 
 def create_new_payment_form():
@@ -600,17 +470,8 @@ def valid_payment_form():
             data.date_started = None
             data.date_finished = None
 
-<<<<<<< HEAD
-        form = form_class(instance=occurrence_confirmation, initial={
-            'occurrence':occurrence,
-            'start_time':occurrence.start_time,
-            'end_time':occurrence.end_time,
-            'device': initial_device,
-            })
-=======
         data.save()
         form.save_m2m()
->>>>>>> 5c144e06b2ef8e226f9f75d22ab0b8e814821c79
 
         # save occurrence comment
         occurrence.annotation = request.POST['occurrence_annotation']
@@ -630,16 +491,6 @@ def valid_payment_form():
 
 @permission_required_with_403('schedule.schedule_write')
 def occurrence_confirmation_form(
-<<<<<<< HEAD
-        request,
-        pk,
-        template='schedule/schedule_occurrence_confirmation_form.html',
-        form_class=OccurrenceConfirmationForm,
-        client_id = None,
-        redirect_to = None,
-    ):
-
-=======
     request,
     pk,
     template='schedule/schedule_occurrence_confirmation_form.html',
@@ -647,7 +498,6 @@ def occurrence_confirmation_form(
     client_id=None,
     redirect_to=None,
 ):
->>>>>>> 5c144e06b2ef8e226f9f75d22ab0b8e814821c79
     '''
         confirmation event
     '''
@@ -659,12 +509,9 @@ def occurrence_confirmation_form(
     if not occurrence.scheduleoccurrence.was_confirmed():
         initial_device = [device.pk for device in occurrence.device.all()]
     else:
-<<<<<<< HEAD
-        initial_device = [device.pk for device in occurrence.occurrenceconfirmation.device.all()]
-=======
+
         initial_device = [
             device.pk for device in occurrence.occurrenceconfirmation.device.all()]
->>>>>>> 5c144e06b2ef8e226f9f75d22ab0b8e814821c79
 
     # check if requested user have perms to read it
     if not _access_check_by_occurrence(request, occurrence):
@@ -676,12 +523,8 @@ def occurrence_confirmation_form(
     except:
         occurrence_confirmation = None
 
-<<<<<<< HEAD
-    object = get_object_or_None(Client, pk = client_id, person__organization=request.user.get_profile().org_active)
-=======
     object = get_object_or_None(
         Client, pk=client_id, person__organization=request.user.get_profile().org_active)
->>>>>>> 5c144e06b2ef8e226f9f75d22ab0b8e814821c79
 
     from gestorpsi.client.views import _access_check_referral_write
     denied_to_write = None
@@ -701,15 +544,9 @@ def occurrence_confirmation_form(
         payment_valid = True
 
         for x in Receive.objects.filter(occurrence=occurrence):
-
-<<<<<<< HEAD
-            pfx = 'receive_form---%s' % x.id # hardcore Jquery
-            form_receive = ReceiveFormUpdate(request.POST, instance=x, prefix=pfx)
-=======
             prefix = 'receive_form---%s' % x.id  # hardcore Jquery
             form_receive = ReceiveFormUpdate(
                 request.POST, instance=x, prefix=prefix)
->>>>>>> 5c144e06b2ef8e226f9f75d22ab0b8e814821c79
 
             receive_list.append(form_receive)
 
@@ -729,15 +566,9 @@ def occurrence_confirmation_form(
             occurrence_confirmation.date_finished = occurrence.end_time
 
         form = form_class(instance=occurrence_confirmation, initial={
-<<<<<<< HEAD
-            'occurrence':occurrence,
-            'start_time':occurrence.start_time,
-            'end_time':occurrence.end_time,
-=======
             'occurrence': occurrence,
             'start_time': occurrence.start_time,
             'end_time': occurrence.end_time,
->>>>>>> 5c144e06b2ef8e226f9f75d22ab0b8e814821c79
             'device': initial_device,
         })
 
@@ -834,23 +665,6 @@ def occurrence_group(
 
 @permission_required_with_403('schedule.schedule_list')
 def _datetime_view(
-<<<<<<< HEAD
-        request,
-        template,
-        dt,
-        place,
-        referral=None,
-        client=None,
-        timeslot_factory=None,
-        items=None,
-        params=None
-    ):
-
-    '''
-        Tiago de Souza Moraes
-        place: Place.id
-    '''
-=======
     request,
     template,
     dt,
@@ -861,7 +675,6 @@ def _datetime_view(
     items=None,
     params=None
 ):
->>>>>>> 5c144e06b2ef8e226f9f75d22ab0b8e814821c79
 
     try:
         referral = Referral.objects.get(
@@ -917,15 +730,6 @@ def _datetime_view(
 
 @permission_required_with_403('schedule.schedule_list')
 def schedule_index(request,
-<<<<<<< HEAD
-        year = datetime.now().strftime("%Y"),
-        month = datetime.now().strftime("%m"),
-        day = datetime.now().strftime("%d"),
-        place=None,
-        template='schedule/schedule_daily.html',
-        **params
-    ):
-=======
                    year=datetime.now().strftime("%Y"),
                    month=datetime.now().strftime("%m"),
                    day=datetime.now().strftime("%d"),
@@ -933,7 +737,6 @@ def schedule_index(request,
                    template='schedule/schedule_daily.html',
                    **params
                    ):
->>>>>>> 5c144e06b2ef8e226f9f75d22ab0b8e814821c79
 
     if place == None:
         # Possible to exist more than one place as matriz or none, filter and
@@ -943,14 +746,8 @@ def schedule_index(request,
                 place_type=1, organization=request.user.get_profile().org_active)[0].id
         # non exist a matriz place
         else:
-<<<<<<< HEAD
-            place = Place.objects.filter(organization=request.user.get_profile().org_active)[0].id
-
-    places_list = Place.objects.active().filter(organization=request.user.get_profile().org_active.id)
-=======
             place = Place.objects.filter(
                 organization=request.user.get_profile().org_active)[0].id
->>>>>>> 5c144e06b2ef8e226f9f75d22ab0b8e814821c79
 
     places_list = Place.objects.active().filter(
         organization=request.user.get_profile().org_active.id)
@@ -964,17 +761,10 @@ def schedule_index(request,
 
 
 def week_view(request,
-<<<<<<< HEAD
-        year = datetime.now().strftime("%Y"),
-        month = datetime.now().strftime("%m"),
-        day = datetime.now().strftime("%d"),
-    ):
-=======
               year=datetime.now().strftime("%Y"),
               month=datetime.now().strftime("%m"),
               day=datetime.now().strftime("%d"),
               ):
->>>>>>> 5c144e06b2ef8e226f9f75d22ab0b8e814821c79
 
     return render_to_response('schedule/schedule_week.html', dict(
         places_list=Place.objects.active().filter(
@@ -992,24 +782,14 @@ def week_view(request,
 
 
 def week_view_table(request,
-<<<<<<< HEAD
-    year = datetime.now().strftime("%Y"),
-    month = datetime.now().strftime("%m"),
-    day = datetime.now().strftime("%d"), ):
-=======
                     year=datetime.now().strftime("%Y"),
                     month=datetime.now().strftime("%m"),
                     day=datetime.now().strftime("%d"), ):
->>>>>>> 5c144e06b2ef8e226f9f75d22ab0b8e814821c79
 
     if not year or not month or not day:
         today = datetime.now()
     else:
-<<<<<<< HEAD
-        today = datetime(year=int(year),month=int(month),day=int(day))
-=======
         today = datetime(year=int(year), month=int(month), day=int(day))
->>>>>>> 5c144e06b2ef8e226f9f75d22ab0b8e814821c79
 
     first_week_day = today - timedelta(days=today.weekday())
 
@@ -1043,17 +823,9 @@ def week_view_table(request,
 
         occurrences.append(occurrences_daily)
 
-<<<<<<< HEAD
-    previous_week = today-timedelta(weeks=1)
-    next_week = today+timedelta(weeks=1)
-    last_week_day = first_week_day+timedelta(days=6)
-
-    return render_to_response('schedule/schedule_week_table.html', locals(), context_instance=RequestContext(request))
-=======
     previous_week = today - timedelta(weeks=1)
     next_week = today + timedelta(weeks=1)
     last_week_day = first_week_day + timedelta(days=6)
->>>>>>> 5c144e06b2ef8e226f9f75d22ab0b8e814821c79
 
     return render_to_response('schedule/schedule_week_table.html', locals(), context_instance=RequestContext(request))
 
@@ -1084,10 +856,6 @@ def schedule_occurrences(request, year=1, month=1, day=None):
 
     return objs
 
-<<<<<<< HEAD
-=======
-
->>>>>>> 5c144e06b2ef8e226f9f75d22ab0b8e814821c79
 @permission_required_with_403('schedule.schedule_list')
 def daily_occurrences(request, year=1, month=1, day=None, place=None):
 
@@ -1185,11 +953,6 @@ def daily_occurrences(request, year=1, month=1, day=None, place=None):
 
     array['util']['occurrences_total'] = i
     array = simplejson.dumps(array)
-<<<<<<< HEAD
-
-    return HttpResponse(array, mimetype='application/json')
-=======
->>>>>>> 5c144e06b2ef8e226f9f75d22ab0b8e814821c79
 
     return HttpResponse(array, mimetype='application/json')
 
